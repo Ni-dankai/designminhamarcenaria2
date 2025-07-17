@@ -185,6 +185,29 @@ export class SpaceCuttingSystem {
    * Verifica se uma peça está dentro dos limites do espaço
    * Para peças estruturais, permite posicionamento nas bordas e até ligeiramente fora
    */
+  static isPieceWithinSpace(space: FurnitureSpace, piece: FurniturePiece): boolean {
+    const p_pos = piece.position;
+    const s_pos = space.position;
+    const s_dims = space.currentDimensions;
+
+    const bounds = {
+        left: s_pos.x - s_dims.width / 2,
+        right: s_pos.x + s_dims.width / 2,
+        bottom: s_pos.y - s_dims.height / 2,
+        top: s_pos.y + s_dims.height / 2,
+    };
+
+    const tolerance = 0.1; // Tolerância para erros de ponto flutuante
+    return (
+        p_pos.x >= bounds.left - tolerance && p_pos.x <= bounds.right + tolerance &&
+        p_pos.y >= bounds.bottom - tolerance && p_pos.y <= bounds.top + tolerance
+    );
+  }
+
+  /**
+   * Verifica se uma peça está dentro dos limites do espaço
+   * Para peças estruturais, permite posicionamento nas bordas e até ligeiramente fora
+   */
   static isPieceWithinSpaceBounds(space: FurnitureSpace, piece: FurniturePiece): boolean {
     const { type } = piece;
     
@@ -865,208 +888,118 @@ export class SpaceCuttingSystem {
   }
 
   /**
-   * Divide um espaço baseado no tipo de peça inserida
+   * Divide um espaço com base em uma peça interna (prateleira ou divisória).
+   * Esta versão foi reescrita para ser mais clara e garantir que a espessura da peça seja respeitada.
    */
   static divideSpace(space: FurnitureSpace, piece: FurniturePiece, cutThickness?: number): FurnitureSpace[] {
-    console.log('🔧 divideSpace chamada com:', {
-      pieceType: piece.type,
-      pieceName: piece.name,
-      spaceName: space.name,
-      spaceDimensions: space.currentDimensions
-    });
-    const { type, thickness } = piece;
-    const effectiveCutThickness = cutThickness ?? thickness;
-    const { currentDimensions, position } = space;
+      const { type, thickness } = piece;
+      const effectiveCutThickness = cutThickness ?? thickness;
+      const { currentDimensions, position: parentPosition } = space;
 
-    console.log(`✂️ Dividindo espaço com ${type}, espessura: ${effectiveCutThickness}mm`);
+      // A peça divisória é sempre posicionada no centro do espaço que está dividindo.
+      const piecePosition = { ...parentPosition }; 
 
-    // Verificar se o espaço é grande o suficiente para ser dividido
-    if (type === PieceType.DIVIDER_VERTICAL) {
-      const minWidthRequired = effectiveCutThickness + 20; // Espessura + margem mínima
-      if (currentDimensions.width < minWidthRequired) {
-        console.warn(`❌ Espaço muito pequeno para divisória vertical: ${currentDimensions.width}mm < ${minWidthRequired}mm`);
-        return [];
+      switch (type) {
+          case PieceType.SHELF: {
+              // A altura restante para os dois novos espaços
+              const remainingHeight = currentDimensions.height - effectiveCutThickness;
+              if (remainingHeight < 1) return []; // Não pode dividir se não houver espaço
+              const heightPerSpace = remainingHeight / 2;
+
+              // Limites do espaço pai (em coordenadas globais)
+              const parentBottomY = parentPosition.y - currentDimensions.height / 2;
+
+              // Limites da prateleira (em coordenadas globais), que está no centro do espaço pai
+              const shelfTopY = piecePosition.y + effectiveCutThickness / 2;
+
+              // Calcula o novo espaço INFERIOR
+              const bottomSpace: FurnitureSpace = {
+                  id: `${space.id}_bottom_${piece.id}`, // ID único para o subespaço
+                  name: `${space.name} Inferior`,
+                  originalDimensions: { ...currentDimensions, height: heightPerSpace },
+                  currentDimensions: { width: currentDimensions.width, height: heightPerSpace, depth: currentDimensions.depth },
+                  position: {
+                      x: parentPosition.x,
+                      y: parentBottomY + heightPerSpace / 2, // Posiciona o centro do novo espaço
+                      z: parentPosition.z,
+                  },
+                  pieces: [],
+                  parentSpaceId: space.id,
+                  isActive: true,
+                  createdByPieceId: piece.id,
+              };
+
+              // Calcula o novo espaço SUPERIOR
+              const topSpace: FurnitureSpace = {
+                  id: `${space.id}_top_${piece.id}`, // ID único para o subespaço
+                  name: `${space.name} Superior`,
+                  originalDimensions: { ...currentDimensions, height: heightPerSpace },
+                  currentDimensions: { width: currentDimensions.width, height: heightPerSpace, depth: currentDimensions.depth },
+                  position: {
+                      x: parentPosition.x,
+                      y: shelfTopY + heightPerSpace / 2, // Posiciona o centro do novo espaço
+                      z: parentPosition.z,
+                  },
+                  pieces: [],
+                  parentSpaceId: space.id,
+                  isActive: true,
+                  createdByPieceId: piece.id,
+              };
+
+              return [bottomSpace, topSpace];
+          }
+
+          case PieceType.DIVIDER_VERTICAL: {
+              const remainingWidth = currentDimensions.width - effectiveCutThickness;
+              if (remainingWidth < 1) return []; // Não pode dividir
+              const widthPerSpace = remainingWidth / 2;
+
+              // Limites do espaço pai (em coordenadas globais)
+              const parentLeftX = parentPosition.x - currentDimensions.width / 2;
+
+              // Limites da divisória (em coordenadas globais)
+              const dividerRightX = piecePosition.x + effectiveCutThickness / 2;
+
+              // Calcula o novo espaço à ESQUERDA
+              const leftSpace: FurnitureSpace = {
+                  id: `${space.id}_left_${piece.id}`,
+                  name: `${space.name} Esquerda`,
+                  originalDimensions: { ...currentDimensions, width: widthPerSpace },
+                  currentDimensions: { width: widthPerSpace, height: currentDimensions.height, depth: currentDimensions.depth },
+                  position: {
+                      x: parentLeftX + widthPerSpace / 2,
+                      y: parentPosition.y,
+                      z: parentPosition.z,
+                  },
+                  pieces: [],
+                  parentSpaceId: space.id,
+                  isActive: true,
+                  createdByPieceId: piece.id,
+              };
+
+              // Calcula o novo espaço à DIREITA
+              const rightSpace: FurnitureSpace = {
+                  id: `${space.id}_right_${piece.id}`,
+                  name: `${space.name} Direita`,
+                  originalDimensions: { ...currentDimensions, width: widthPerSpace },
+                  currentDimensions: { width: widthPerSpace, height: currentDimensions.height, depth: currentDimensions.depth },
+                  position: {
+                      x: dividerRightX + widthPerSpace / 2,
+                      y: parentPosition.y,
+                      z: parentPosition.z,
+                  },
+                  pieces: [],
+                  parentSpaceId: space.id,
+                  isActive: true,
+                  createdByPieceId: piece.id,
+              };
+
+              return [leftSpace, rightSpace];
+          }
+
+          default:
+              return []; // Outros tipos de peça não dividem o espaço.
       }
-    } else if (type === PieceType.SHELF) {
-      const minHeightRequired = effectiveCutThickness + 20; // Espessura + margem mínima
-      if (currentDimensions.height < minHeightRequired) {
-        console.warn(`❌ Espaço muito pequeno para prateleira: ${currentDimensions.height}mm < ${minHeightRequired}mm`);
-        return [];
-      }
-    }
-
-    switch (type) {
-      case PieceType.SHELF: {
-        console.log('📚 Processando prateleira:', {
-          currentHeight: currentDimensions.height,
-          effectiveCutThickness,
-          remainingHeight: currentDimensions.height - effectiveCutThickness
-        });
-        
-        // Prateleira divide o espaço verticalmente em 2 partes
-        const remainingHeight = currentDimensions.height - effectiveCutThickness;
-        const heightPerSpace = remainingHeight / 2;
-        
-        console.log('📏 Cálculos da prateleira:', {
-          remainingHeight,
-          heightPerSpace
-        });
-
-        const bottomSpace: FurnitureSpace = {
-          id: `${space.id}_bottom`,
-          name: `${space.name} - Inferior`,
-          originalDimensions: { ...currentDimensions },
-          currentDimensions: {
-            width: currentDimensions.width,
-            height: heightPerSpace,
-            depth: currentDimensions.depth,
-          },
-          position: {
-            x: position.x,
-            y: position.y - (effectiveCutThickness + heightPerSpace) / 2,
-            z: position.z,
-          },
-          pieces: [],
-          parentSpaceId: space.id,
-          isActive: true,
-          createdByPieceId: piece.id,
-        };
-
-        const topSpace: FurnitureSpace = {
-          id: `${space.id}_top`,
-          name: `${space.name} - Superior`,
-          originalDimensions: { ...currentDimensions },
-          currentDimensions: {
-            width: currentDimensions.width,
-            height: heightPerSpace,
-            depth: currentDimensions.depth,
-          },
-          position: {
-            x: position.x,
-            y: position.y + (effectiveCutThickness + heightPerSpace) / 2,
-            z: position.z,
-          },
-          pieces: [],
-          parentSpaceId: space.id,
-          isActive: true,
-          createdByPieceId: piece.id,
-        };
-
-        console.log(`📚 Espaço dividido por prateleira: 2 espaços de ${heightPerSpace}mm cada`);
-        console.log('✅ Retornando espaços da prateleira:', [
-          { name: bottomSpace.name, dimensions: bottomSpace.currentDimensions },
-          { name: topSpace.name, dimensions: topSpace.currentDimensions }
-        ]);
-        return [bottomSpace, topSpace];
-      }
-
-      case PieceType.DIVIDER_VERTICAL: {
-        // Divisória vertical divide o espaço horizontalmente em 2 partes
-        const remainingWidth = currentDimensions.width - effectiveCutThickness;
-        const widthPerSpace = remainingWidth / 2;
-
-        const leftSpace: FurnitureSpace = {
-          id: `${space.id}_left`,
-          name: `${space.name} - Esquerda`,
-          originalDimensions: { ...currentDimensions },
-          currentDimensions: {
-            width: widthPerSpace,
-            height: currentDimensions.height,
-            depth: currentDimensions.depth,
-          },
-          position: {
-            x: position.x - (effectiveCutThickness + widthPerSpace) / 2,
-            y: position.y,
-            z: position.z,
-          },
-          pieces: [],
-          parentSpaceId: space.id,
-          isActive: true,
-          createdByPieceId: piece.id,
-        };
-
-        const rightSpace: FurnitureSpace = {
-          id: `${space.id}_right`,
-          name: `${space.name} - Direita`,
-          originalDimensions: { ...currentDimensions },
-          currentDimensions: {
-            width: widthPerSpace,
-            height: currentDimensions.height,
-            depth: currentDimensions.depth,
-          },
-          position: {
-            x: position.x + (effectiveCutThickness + widthPerSpace) / 2,
-            y: position.y,
-            z: position.z,
-          },
-          pieces: [],
-          parentSpaceId: space.id,
-          isActive: true,
-          createdByPieceId: piece.id,
-        };
-
-        console.log(`🔀 Espaço dividido por divisória vertical: 2 espaços de ${widthPerSpace}mm cada`);
-        console.log('✅ Retornando espaços da divisória vertical:', [
-          { name: leftSpace.name, dimensions: leftSpace.currentDimensions },
-          { name: rightSpace.name, dimensions: rightSpace.currentDimensions }
-        ]);
-        return [leftSpace, rightSpace];
-      }
-
-      // case PieceType.DIVIDER_HORIZONTAL: { // Removido: redundante com SHELF
-      //   // Divisória horizontal divide o espaço em altura (Y) em 2 partes (superior e inferior)
-      //   const remainingHeight = currentDimensions.height - effectiveCutThickness;
-      //   const heightPerSpace = remainingHeight / 2;
-
-      //   const bottomSpace: FurnitureSpace = {
-      //     id: `${space.id}_bottom`,
-      //     name: `${space.name} - Inferior`,
-      //     originalDimensions: { ...currentDimensions },
-      //     currentDimensions: {
-      //       width: currentDimensions.width,
-      //       height: heightPerSpace,
-      //       depth: currentDimensions.depth,
-      //     },
-      //     position: {
-      //       x: position.x,
-      //       y: position.y - (effectiveCutThickness + heightPerSpace) / 2,
-      //       z: position.z,
-      //     },
-      //     pieces: [],
-      //     parentSpaceId: space.id,
-      //     isActive: true,
-      //   };
-
-      //   const topSpace: FurnitureSpace = {
-      //     id: `${space.id}_top`,
-      //     name: `${space.name} - Superior`,
-      //     originalDimensions: { ...currentDimensions },
-      //     currentDimensions: {
-      //       width: currentDimensions.width,
-      //       height: heightPerSpace,
-      //       depth: currentDimensions.depth,
-      //     },
-      //     position: {
-      //       x: position.x,
-      //       y: position.y + (effectiveCutThickness + heightPerSpace) / 2,
-      //       z: position.z,
-      //     },
-      //     pieces: [],
-      //     parentSpaceId: space.id,
-      //     isActive: true,
-      //   };
-
-      //   console.log(`📐 Espaço dividido por divisória horizontal: 2 espaços de ${heightPerSpace}mm cada`);
-      //   return [bottomSpace, topSpace];
-      // }
-
-      default:
-        // Peças estruturais não dividem o espaço, apenas o reduzem
-        console.log('⚠️ Tipo de peça não divide espaço:', type);
-        return [space];
-    }
-    
-    console.log('🔧 divideSpace finalizada');
   }
 
   /**
