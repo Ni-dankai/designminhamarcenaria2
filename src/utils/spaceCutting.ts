@@ -1381,7 +1381,6 @@ export class SpaceCuttingSystem {
       if (!space.subSpaces || space.subSpaces.length === 0) {
         return space;
       }
-      const bounds = SpaceCuttingSystem.calculateInternalSpaceBounds(space);
       if (piece.type === PieceType.SHELF) {
         const found = space.subSpaces.find(sub => {
           const b = SpaceCuttingSystem.calculateInternalSpaceBounds(sub);

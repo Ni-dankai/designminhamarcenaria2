@@ -10,6 +10,7 @@ const App = () => {
     insertionContext,
     addPiece,
     setInsertionMode,
+    allPieces,
   } = useSimplifiedFurnitureDesign();
 
   // Estado para peça selecionada
@@ -17,19 +18,20 @@ const App = () => {
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      <Scene3D 
-        space={space} 
+      <Scene3D
+        space={space}
+        allPieces={allPieces}
         selectedPieceId={selectedPieceId}
         onSelectPiece={setSelectedPieceId}
       />
-      
+
       <SimplifiedControlPanel
         insertionContext={insertionContext}
         onModeChange={setInsertionMode}
         onAddPiece={addPiece}
         currentDimensions={space.currentDimensions}
       />
-      
+
       <InstructionsPanel />
     </div>
   );

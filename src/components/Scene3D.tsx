@@ -1,4 +1,4 @@
-import { Suspense, useMemo } from 'react';
+import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Grid } from '@react-three/drei';
 import { FurnitureSpace, FurniturePiece } from '../types/furniture';
@@ -28,7 +28,7 @@ interface Scene3DProps {
   onSelectPiece?: (pieceId: string) => void;
 }
 
-export const Scene3D = ({ space, allPieces, selectedSpaceId, onSelectSpace, selectedPieceId, onSelectPiece }: Scene3DProps) => {
+export const Scene3D = ({ space, allPieces, selectedSpaceId, onSelectSpace, onSelectPiece }: Scene3DProps) => {
   const gridYPosition = - (space.originalDimensions.height / 100) / 2 - 0.2;
 
   return (

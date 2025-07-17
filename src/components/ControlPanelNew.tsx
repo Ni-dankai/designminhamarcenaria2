@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import { PieceType, Dimensions } from '../types/furniture';
-import { useFurnitureDesign } from '../hooks/useFurnitureDesign';
+// Removido: import { useFurnitureDesign } from '../hooks/useFurnitureDesign';
 
 const ControlPanelContainer = styled.div`
   position: fixed;
@@ -222,15 +222,16 @@ const RemoveButton = styled.button`
   }
 `;
 
+// Substituir o tipo ControlPanelProps por tipos explícitos
 interface ControlPanelProps {
-  space: ReturnType<typeof useFurnitureDesign>['space'];
-  insertionContext: ReturnType<typeof useFurnitureDesign>['insertionContext'];
-  addPiece: ReturnType<typeof useFurnitureDesign>['addPiece'];
-  removePiece: ReturnType<typeof useFurnitureDesign>['removePiece'];
-  updateSpaceDimensions: ReturnType<typeof useFurnitureDesign>['updateSpaceDimensions'];
-  clearAll: ReturnType<typeof useFurnitureDesign>['clearAll'];
-  toggleInsertionMode: ReturnType<typeof useFurnitureDesign>['toggleInsertionMode'];
-  setSpaceSelection: ReturnType<typeof useFurnitureDesign>['setSpaceSelection'];
+  space: any;
+  insertionContext: any;
+  addPiece: (type: PieceType) => void;
+  removePiece: (id: string) => void;
+  updateSpaceDimensions: (dimensions: Dimensions) => void;
+  clearAll: () => void;
+  toggleInsertionMode: () => void;
+  setSpaceSelection: (selection: string) => void;
 }
 
 export const ControlPanel = ({ 
@@ -268,7 +269,6 @@ export const ControlPanel = ({
       return [
         { type: PieceType.SHELF, label: 'Prateleira' },
         { type: PieceType.DIVIDER_VERTICAL, label: 'Divisória Vertical' },
-        { type: PieceType.DIVIDER_HORIZONTAL, label: 'Divisória Horizontal' },
       ];
     }
   };
@@ -384,7 +384,7 @@ export const ControlPanel = ({
       <Section>
         <SectionTitle>Peças Adicionadas</SectionTitle>
         <PieceList>
-          {space.pieces.map((piece) => (
+          {space.pieces.map((piece: any) => (
             <PieceItem key={piece.id}>
               <PieceName>{piece.name}</PieceName>
               <RemoveButton onClick={() => removePiece(piece.id)}>

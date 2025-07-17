@@ -515,213 +515,6 @@ const DropdownContainer = styled.div`
   position: relative;
 `;
 
-const InfoPanel = styled.div`
-  padding: var(--space-2) var(--space-3);
-  background: linear-gradient(135deg, var(--color-background-alt), var(--color-background));
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  max-width: 180px;
-  position: relative;
-  box-shadow: var(--shadow-sm);
-  height: fit-content;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), transparent);
-    border-radius: var(--radius-md);
-    pointer-events: none;
-  }
-`;
-
-const InfoText = styled.div`
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  line-height: 1.3;
-  text-align: center;
-  font-weight: 500;
-`;
-
-const ThicknessInput = styled.input`
-  width: 60px;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  text-align: center;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-weight: 500;
-  height: 36px; /* Better height for usability */
-  
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-    background: var(--color-surface);
-  }
-  
-  &:hover {
-    border-color: var(--color-primary);
-  }
-`;
-
-const ThicknessLabel = styled.label`
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  flex-direction: row;
-  text-align: center;
-`;
-
-const DimensionInput = styled.input`
-  width: 70px;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  text-align: center;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-weight: 500;
-  transition: all 0.2s ease;
-  height: 36px; /* Better height for usability */
-  
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-    background: var(--color-surface);
-  }
-  
-  &:hover {
-    border-color: var(--color-primary);
-  }
-`;
-
-const DimensionLabel = styled.label`
-  font-size: var(--font-size-sm);
-  color: var(--color-text);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  flex-direction: row;
-  text-align: center;
-`;
-
-const DimensionControls = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  align-items: center;
-  width: 100%;
-`;
-
-const DimensionGroup = styled.div`
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
-  flex-wrap: nowrap;
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-background-alt);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-light);
-  justify-content: space-between;
-  min-width: 300px;
-`;
-
-const DimensionButtonGroup = styled.div`
-  display: flex;
-  gap: var(--space-2);
-`;
-
-const FeedbackMessage = styled.div<{ $type: 'success' | 'error' }>`
-  position: fixed;
-  top: 100px; /* Adjusted for compact toolbar */
-  left: 50%;
-  transform: translateX(-50%);
-  background: ${({ $type }) => 
-    $type === 'success' 
-      ? 'linear-gradient(135deg, var(--color-success), #047857)' 
-      : 'linear-gradient(135deg, var(--color-error), #b91c1c)'
-  };
-  color: white;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-lg);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  box-shadow: var(--shadow-lg);
-  z-index: 1001;
-  animation: slideDown 0.3s ease;
-  
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateX(-50%) translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-  }
-`;
-
-const SheetValidationMessage = styled.div`
-  background: #fef3cd;
-  border: 1px solid #fbbf24;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 11px;
-  color: #92400e;
-  margin-top: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  
-  &:before {
-    content: "⚠️ Limites da chapa:";
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-`;
-
-const SheetDimensionsInfo = styled.div`
-  background: #f0f9ff;
-  border: 1px solid #7dd3fc;
-  border-radius: 6px;
-  padding: 6px 8px;
-  font-size: 10px;
-  color: #0369a1;
-  margin-top: 4px;
-  text-align: center;
-  
-  &:before {
-    content: "📏 Chapa: ";
-    font-weight: 600;
-  }
-`;
-
-const PiecesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-2);
-  min-width: 200px;
-  width: 100%;
-  max-width: 300px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-    min-width: 140px;
-  }
-`;
-
 interface ToolbarProps {
   insertionContext: InsertionContext;
   onModeChange: (mode: InsertionMode) => void;
@@ -734,8 +527,6 @@ interface ToolbarProps {
   onUpdateDimensions: (dimensions: { width: number; height: number; depth: number }) => void;
   defaultThickness: number;
   onThicknessChange: (thickness: number) => void;
-  selectedSpaceId?: string | null;
-  activeSpaces?: any[];
   feedbackMessage?: string | null;
 }
 
@@ -751,8 +542,6 @@ export const Toolbar = ({
   onUpdateDimensions,
   defaultThickness,
   onThicknessChange,
-  selectedSpaceId,
-  activeSpaces = [],
   feedbackMessage,
 }: ToolbarProps) => {
   const [showPiecesList, setShowPiecesList] = useState(false);
@@ -819,10 +608,8 @@ export const Toolbar = ({
   useEffect(() => {
     if (showPiecesList && buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
       const minMargin = 16; // margem mínima
-      const dropdownHeight = 320; // max-height do dropdown
       const dropdownWidth = 320; // min-width do dropdown
       const toolbarHeight = 80; // altura do toolbar
 
@@ -907,9 +694,9 @@ export const Toolbar = ({
   return (
     <>
       {feedbackMessage && (
-        <FeedbackMessage $type={feedbackMessage.includes('❌') ? 'error' : 'success'}>
+        <div style={{ color: feedbackMessage.includes('❌') ? 'var(--color-error)' : 'var(--color-success)', marginBottom: 'var(--space-3)' }}>
           {feedbackMessage}
-        </FeedbackMessage>
+        </div>
       )}
       <ToolbarContainer>
       {/* Seção de Modo */}
@@ -932,10 +719,10 @@ export const Toolbar = ({
       {/* Seção de Espessura */}
       <ToolbarSection>
         <SectionLabel>Espessura</SectionLabel>
-        <ThicknessInput
+        <input
           type="number"
           value={defaultThickness}
-          onChange={(e) => onThicknessChange(Number(e.target.value))}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onThicknessChange(Number(e.target.value))}
           min="1"
           max="200"
           title="Espessura das peças em milímetros"
@@ -946,12 +733,12 @@ export const Toolbar = ({
       {/* Seção de Controles de Dimensão */}
       <ToolbarSection>
         <SectionLabel>Dimensões</SectionLabel>
-        <DimensionLabel>
+        <label>
           L:
-          <DimensionInput
+          <input
             type="number"
             value={tempDimensions.width}
-            onChange={(e) => setTempDimensions(prev => ({
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempDimensions(prev => ({
               ...prev,
               width: Number(e.target.value) || 0
             }))}
@@ -959,13 +746,13 @@ export const Toolbar = ({
             max="10000"
             title="Largura do móvel"
           />
-        </DimensionLabel>
-        <DimensionLabel>
+        </label>
+        <label>
           A:
-          <DimensionInput
+          <input
             type="number"
             value={tempDimensions.height}
-            onChange={(e) => setTempDimensions(prev => ({
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempDimensions(prev => ({
               ...prev,
               height: Number(e.target.value) || 0
             }))}
@@ -973,13 +760,13 @@ export const Toolbar = ({
             max="10000"
             title="Altura do móvel"
           />
-        </DimensionLabel>
-        <DimensionLabel>
+        </label>
+        <label>
           P:
-          <DimensionInput
+          <input
             type="number"
             value={tempDimensions.depth}
-            onChange={(e) => setTempDimensions(prev => ({
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempDimensions(prev => ({
               ...prev,
               depth: Number(e.target.value) || 0
             }))}
@@ -987,7 +774,7 @@ export const Toolbar = ({
             max="10000"
             title="Profundidade do móvel"
           />
-        </DimensionLabel>
+        </label>
         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text)' }}>mm</span>
         
         <ToolButton

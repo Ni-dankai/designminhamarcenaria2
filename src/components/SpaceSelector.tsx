@@ -1,4 +1,3 @@
-import React from 'react';
 import styled from 'styled-components';
 
 const SpaceSelectorContainer = styled.div`
@@ -127,7 +126,6 @@ interface SpaceSelectorProps {
   selectedSpaceId: string | null;
   activeSpaces: any[];
   onSelectSpace: (spaceId: string | null) => void;
-  mainSpaceId: string;
   mainSpaceName: string;
 }
 
@@ -135,7 +133,6 @@ export const SpaceSelector = ({
   selectedSpaceId, 
   activeSpaces, 
   onSelectSpace, 
-  mainSpaceId,
   mainSpaceName 
 }: SpaceSelectorProps) => {
   const totalSpaces = activeSpaces.length + 1; // +1 para o espaço principal

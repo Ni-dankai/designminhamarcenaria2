@@ -9,7 +9,7 @@ import { useSimplifiedFurnitureDesign } from './hooks/useSimplifiedFurnitureDesi
 const App = () => {
   const {
     space,
-    allPieces, // <--- Pegar a lista completa de peças
+    allPieces,
     insertionContext,
     addPiece,
     removePiece,
@@ -20,7 +20,6 @@ const App = () => {
     selectedSpaceId,
     selectSpace,
     activeSpaces,
-    feedbackMessage,
     updateDimensions,
   } = useSimplifiedFurnitureDesign();
 
@@ -91,7 +90,7 @@ const App = () => {
 
       <Scene3D
         space={space}
-        allPieces={allPieces} // <--- Garantir que a lista completa de peças seja passada
+        allPieces={allPieces}
         selectedSpaceId={selectedSpaceId}
         onSelectSpace={selectSpace}
         selectedPieceId={selectedPieceId}
@@ -104,22 +103,18 @@ const App = () => {
         onAddPiece={addPiece}
         onRemovePiece={removePiece}
         onClearAll={clearAllPieces}
-        pieces={allPieces} // <--- Passar a lista completa de peças para o Toolbar
+        pieces={allPieces}
         currentDimensions={space.currentDimensions}
         originalDimensions={space.originalDimensions}
         onUpdateDimensions={updateDimensions}
         defaultThickness={defaultThickness}
         onThicknessChange={setDefaultThickness}
-        selectedSpaceId={selectedSpaceId}
-        activeSpaces={activeSpaces}
-        // feedbackMessage removido pois não existe mais no hook
       />
 
       <SpaceSelector
         activeSpaces={activeSpaces}
         selectedSpaceId={selectedSpaceId}
         onSelectSpace={selectSpace}
-        mainSpaceId={space.id}
         mainSpaceName={space.name}
       />
 

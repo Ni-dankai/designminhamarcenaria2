@@ -32,19 +32,9 @@ export const useFurnitureDesign = () => {
 
   const addPiece = useCallback((pieceType: PieceType, thickness: number = 18, customName?: string) => {
     // Validar se a peça pode ser inserida no espaço atual
-    const isStructuralPiece = [
-      PieceType.LATERAL_LEFT,
-      PieceType.LATERAL_RIGHT,
-      PieceType.LATERAL_FRONT,
-      PieceType.LATERAL_BACK,
-      PieceType.BOTTOM,
-      PieceType.TOP
-    ].includes(pieceType);
-
     const isInternalPiece = [
       PieceType.SHELF,
-      PieceType.DIVIDER_VERTICAL,
-      PieceType.DIVIDER_HORIZONTAL
+      PieceType.DIVIDER_VERTICAL
     ].includes(pieceType);
 
     // Verificar se há espaço disponível para peças internas
@@ -64,7 +54,6 @@ export const useFurnitureDesign = () => {
       [PieceType.TOP]: 'Tampo',
       [PieceType.SHELF]: 'Prateleira',
       [PieceType.DIVIDER_VERTICAL]: 'Divisória Vertical',
-      [PieceType.DIVIDER_HORIZONTAL]: 'Divisória Horizontal',
     };
 
     const pieceColors: Record<PieceType, string> = {
@@ -76,7 +65,6 @@ export const useFurnitureDesign = () => {
       [PieceType.TOP]: '#ef4444',
       [PieceType.SHELF]: '#10b981',
       [PieceType.DIVIDER_VERTICAL]: '#3b82f6',
-      [PieceType.DIVIDER_HORIZONTAL]: '#6366f1',
     };
 
     const newPiece: FurniturePiece = {

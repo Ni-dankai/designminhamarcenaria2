@@ -44,10 +44,6 @@ export class SpaceCuttingSystem {
         // Divisória vertical divide o espaço horizontalmente
         break;
 
-      case PieceType.DIVIDER_HORIZONTAL:
-        // Divisória horizontal divide o espaço verticalmente
-        break;
-
       default:
         break;
     }
@@ -132,14 +128,6 @@ export class SpaceCuttingSystem {
         piecePosition.z = space.position.z;
         break;
 
-      case PieceType.DIVIDER_HORIZONTAL:
-        // Divisórias horizontais: distribuídas verticalmente dentro do espaço
-        const horizontalSpacing = space.currentDimensions.height / (existingPiecesOfSameType.length + 2);
-        piecePosition.x = space.position.x;
-        piecePosition.y = space.position.y + horizontalSpacing * (offset + 1);
-        piecePosition.z = space.position.z;
-        break;
-
       default:
         break;
     }
@@ -189,13 +177,6 @@ export class SpaceCuttingSystem {
         return {
           width: thickness,
           height: space.currentDimensions.height, // Usa o espaço interno disponível
-          depth: space.currentDimensions.depth, // Usa o espaço interno disponível
-        };
-
-      case PieceType.DIVIDER_HORIZONTAL:
-        return {
-          width: space.currentDimensions.width, // Usa o espaço interno disponível
-          height: thickness,
           depth: space.currentDimensions.depth, // Usa o espaço interno disponível
         };
 

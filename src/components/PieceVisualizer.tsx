@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box } from '@react-three/drei';
 import { FurniturePiece } from '../types/furniture';
 
