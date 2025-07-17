@@ -1,0 +1,38 @@
+import { Scene3D } from './components/Scene3D';
+import { SimplifiedControlPanel } from './components/SimplifiedControlPanel';
+import { InstructionsPanel } from './components/InstructionsPanel';
+import { useSimplifiedFurnitureDesign } from './hooks/useSimplifiedFurnitureDesign';
+import { useState } from 'react';
+
+const App = () => {
+  const {
+    space,
+    insertionContext,
+    addPiece,
+    setInsertionMode,
+  } = useSimplifiedFurnitureDesign();
+
+  // Estado para peça selecionada
+  const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
+
+  return (
+    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      <Scene3D 
+        space={space} 
+        selectedPieceId={selectedPieceId}
+        onSelectPiece={setSelectedPieceId}
+      />
+      
+      <SimplifiedControlPanel
+        insertionContext={insertionContext}
+        onModeChange={setInsertionMode}
+        onAddPiece={addPiece}
+        currentDimensions={space.currentDimensions}
+      />
+      
+      <InstructionsPanel />
+    </div>
+  );
+};
+
+export default App;
