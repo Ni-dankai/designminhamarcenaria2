@@ -57,7 +57,7 @@ export const useSimplifiedFurnitureDesign = () => {
             }
 
             // 2. Usa a primeira peça que DIVIDE para criar subespaços
-            dividingPieces.sort((a,b) => a.type === PieceType.DIVIDER_VERTICAL ? -1 : 1); // Prioriza divisórias
+            dividingPieces.sort(a => a.type === PieceType.DIVIDER_VERTICAL ? -1 : 1); // Prioriza divisórias
             const divider = dividingPieces[0];
             
             const positionedDivider = { ...divider,
