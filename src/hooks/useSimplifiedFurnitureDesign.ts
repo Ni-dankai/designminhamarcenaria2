@@ -8,8 +8,8 @@ const PIECE_CONFIG: Record<string, { name: string; color: string }> = {
     [PieceType.LATERAL_LEFT]: { name: 'Lateral Esquerda', color: '#8b5cf6' },
     [PieceType.LATERAL_RIGHT]: { name: 'Lateral Direita', color: '#8b5cf6' },
     [PieceType.LATERAL_FRONT]: { name: 'Lateral Frontal', color: '#f59e0b' },
-    [PieceType.LATERAL_BACK]: { name: 'Lateral Traseira', color: '#f59e0b' },
-    [PieceType.BOTTOM]: { name: 'Fundo', color: '#ef4444' },
+    [PieceType.LATERAL_BACK]: { name: 'Costas', color: '#facc15' },
+    [PieceType.BOTTOM]: { name: 'Base', color: '#ef4444' },
     [PieceType.TOP]: { name: 'Tampo', color: '#ef4444' },
     [PieceType.SHELF]: { name: 'Prateleira', color: '#10b981' },
     [PieceType.DIVIDER_VERTICAL]: { name: 'Divisória Vertical', color: '#3b82f6' },
@@ -27,64 +27,90 @@ export const useSimplifiedFurnitureDesign = () => {
     const [insertionContext, setInsertionContext] = useState<InsertionContext>({ mode: InsertionMode.STRUCTURAL });
 
     const memoizedState = useMemo(() => {
+        // Lista final de todas as peças com posições e dimensões corretas para renderizar
         const positionedPieces: FurniturePiece[] = [];
-        let activeSpaces: FurnitureSpace[] = [];
 
-        // 1. Processa peças estruturais, que definem o vão principal
-        let currentVoid: FurnitureSpace = {
+        // Função recursiva que constrói a árvore de espaços e posiciona as peças
+        const buildTree = (parentSpace: FurnitureSpace): FurnitureSpace => {
+            let currentVoid = { ...parentSpace };
+            
+            // Encontra todas as peças que são filhas diretas do espaço atual
+            const childPieces = allPieces.filter(p => p.parentSpaceId === parentSpace.id);
+
+            // Separa peças que cortam (estruturais) das que dividem (internas)
+            const cuttingPieces = childPieces.filter(p => ![PieceType.SHELF, PieceType.DIVIDER_VERTICAL].includes(p.type));
+            const dividingPieces = childPieces.filter(p => [PieceType.SHELF, PieceType.DIVIDER_VERTICAL].includes(p.type));
+
+            // 1. Aplica todas as peças que CORTAM o espaço atual
+            cuttingPieces.forEach(piece => {
+                const positioned = { ...piece,
+                    position: SpaceCuttingSystem.calculatePiecePosition(currentVoid, piece),
+                    dimensions: SpaceCuttingSystem.calculatePieceDimensions(currentVoid, piece.type, piece.thickness),
+                };
+                positionedPieces.push(positioned);
+                currentVoid = SpaceCuttingSystem.applyCutToSpace(currentVoid, piece);
+            });
+
+            // Se não houver peças que dividem, este é um espaço final (ativo)
+            if (dividingPieces.length === 0) {
+                return currentVoid;
+            }
+
+            // 2. Usa a primeira peça que DIVIDE para criar subespaços
+            dividingPieces.sort((a,b) => a.type === PieceType.DIVIDER_VERTICAL ? -1 : 1); // Prioriza divisórias
+            const divider = dividingPieces[0];
+            
+            const positionedDivider = { ...divider,
+                position: SpaceCuttingSystem.calculatePiecePosition(currentVoid, divider),
+                dimensions: SpaceCuttingSystem.calculatePieceDimensions(currentVoid, divider.type, divider.thickness),
+            };
+            positionedPieces.push(positionedDivider);
+            
+            currentVoid.isActive = false;
+            const subSpaces = SpaceCuttingSystem.divideSpace(currentVoid, positionedDivider);
+            
+            // 3. Chamada recursiva para cada subespaço
+            currentVoid.subSpaces = subSpaces.map(sub => buildTree(sub));
+            
+            return currentVoid;
+        };
+
+        const rootSpace: FurnitureSpace = {
             ...mainSpaceInfo,
             currentDimensions: mainSpaceInfo.originalDimensions,
             position: { x: 0, y: 0, z: 0 },
             pieces: [], isActive: true,
         };
-        const structuralPieces = allPieces.filter(p => ![PieceType.SHELF, PieceType.DIVIDER_VERTICAL].includes(p.type));
-        
-        structuralPieces.forEach(piece => {
-            // A cada peça, calcula a posição e dimensão com base no espaço ATUALMENTE disponível
-            const positioned = { ...piece,
-                position: SpaceCuttingSystem.calculatePiecePosition(currentVoid, piece),
-                dimensions: SpaceCuttingSystem.calculatePieceDimensions(currentVoid, piece.type, piece.thickness),
-            };
-            positionedPieces.push(positioned);
-            // Atualiza o vão para a próxima peça
-            currentVoid = SpaceCuttingSystem.applyCutToSpace(currentVoid, piece);
-        });
-        
-        // O resultado do processo estrutural é o primeiro espaço ativo
-        activeSpaces.push(currentVoid);
-        
-        // 2. Processa peças internas, que dividem os espaços ativos
-        const internalPieces = allPieces.filter(p => [PieceType.SHELF, PieceType.DIVIDER_VERTICAL].includes(p.type));
-        internalPieces.forEach(piece => {
-            const parentSpaceIndex = activeSpaces.findIndex(s => s.id === piece.parentSpaceId);
-            if (parentSpaceIndex > -1) {
-                const parentSpace = activeSpaces[parentSpaceIndex];
-                
-                const positioned = { ...piece,
-                    position: SpaceCuttingSystem.calculatePiecePosition(parentSpace, piece),
-                    dimensions: SpaceCuttingSystem.calculatePieceDimensions(parentSpace, piece.type, piece.thickness)
-                };
-                positionedPieces.push(positioned);
-                
-                const newSubSpaces = SpaceCuttingSystem.divideSpace(parentSpace, positioned);
-                activeSpaces.splice(parentSpaceIndex, 1, ...newSubSpaces);
-            }
-        });
 
-        // 3. Monta o objeto final para o renderer
-        const finalSpace = { ...mainSpaceInfo,
-            currentDimensions: mainSpaceInfo.originalDimensions,
-            position: {x:0, y:0, z:0},
-            pieces: positionedPieces, // Renderiza a lista completa e posicionada
-            subSpaces: activeSpaces, // Passa os espaços ativos finais
+        const spaceTree = buildTree(rootSpace);
+        
+        const collectActiveSpaces = (s: FurnitureSpace): FurnitureSpace[] => {
+            if (s.subSpaces && s.subSpaces.length > 0) {
+                return s.subSpaces.flatMap(collectActiveSpaces);
+            }
+            return s.isActive ? [s] : [];
         };
         
-        return { space: finalSpace, activeSpaces, positionedPieces };
+        return {
+            space: spaceTree,
+            activeSpaces: collectActiveSpaces(spaceTree),
+            positionedPieces,
+        };
     }, [allPieces, mainSpaceInfo]);
 
     const getSelectedSpace = useCallback((): FurnitureSpace | null => {
-        return memoizedState.activeSpaces.find(s => s.id === selectedSpaceId) || memoizedState.space;
-    }, [selectedSpaceId, memoizedState.activeSpaces, memoizedState.space]);
+        const find = (s: FurnitureSpace, id: string): FurnitureSpace | null => {
+            if (s.id === id) return s;
+            if (s.subSpaces) {
+                for(const sub of s.subSpaces) {
+                    const found = find(sub, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+        return selectedSpaceId ? find(memoizedState.space, selectedSpaceId) : memoizedState.space;
+    }, [selectedSpaceId, memoizedState.space]);
 
     const addPiece = useCallback((pieceType: PieceType) => {
         const targetSpace = getSelectedSpace();
@@ -105,23 +131,17 @@ export const useSimplifiedFurnitureDesign = () => {
         setAllPieces(prev => {
             const pieceToRemove = prev.find(p => p.id === pieceId);
             if (!pieceToRemove) return prev;
-            // Remove a peça e todas as peças que dependem dela (foram adicionadas em seus subespaços)
-            const idsToRemove = new Set([pieceId]);
-            const findChildren = (parentId: string) => {
-                prev.forEach(p => {
-                    if (p.parentSpaceId?.includes(parentId)) {
-                        idsToRemove.add(p.id);
-                        findChildren(p.id);
+            const parentIdOfRemoved = pieceToRemove.parentSpaceId;
+            return prev
+                .filter(p => p.id !== pieceId)
+                .map(p => {
+                    if (p.parentSpaceId && p.parentSpaceId.includes(pieceToRemove.id)) {
+                        return { ...p, parentSpaceId: parentIdOfRemoved };
                     }
+                    return p;
                 });
-            };
-            findChildren(pieceId);
-            return prev.filter(p => !idsToRemove.has(p.id));
         });
-
-        if (selectedSpaceId?.includes(pieceId)) {
-            setSelectedSpaceId('main');
-        }
+        if (selectedSpaceId && selectedSpaceId.includes(pieceId)) setSelectedSpaceId('main');
     }, [selectedSpaceId]);
 
     const updateDimensions = useCallback((newDimensions: Dimensions) => {
@@ -135,9 +155,7 @@ export const useSimplifiedFurnitureDesign = () => {
         setSelectedSpaceId('main');
     }, []);
 
-    const setInsertionMode = useCallback((mode: InsertionMode) => {
-        setInsertionContext({ mode });
-    }, []);
+    const setInsertionMode = useCallback((mode: InsertionMode) => { setInsertionContext({ mode }); }, []);
 
     return {
         space: memoizedState.space,
