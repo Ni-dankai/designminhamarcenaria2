@@ -2,7 +2,6 @@ import { Scene3D } from './components/Scene3D';
 import { SimplifiedControlPanel } from './components/SimplifiedControlPanel';
 import { InstructionsPanel } from './components/InstructionsPanel';
 import { useSimplifiedFurnitureDesign } from './hooks/useSimplifiedFurnitureDesign';
-import { useState } from 'react';
 
 const App = () => {
   const {
