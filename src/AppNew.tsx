@@ -10,7 +10,7 @@ const App = () => {
     addPiece,
     setInsertionMode,
     allPieces,
-    currentTextureUrl, // Adicionado para passar para Scene3D
+    currentTexture, // Adicionado para passar para Scene3D
   } = useSimplifiedFurnitureDesign();
 
   // Removido: selectedPieceId e setSelectedPieceId não são mais usados
@@ -20,7 +20,7 @@ const App = () => {
       <Scene3D
         space={space}
         allPieces={allPieces}
-        textureUrl={currentTextureUrl} // Corrigido: prop obrigatória
+        textureUrl={currentTexture.url} // Corrigido: prop obrigatória
       />
 
       <SimplifiedControlPanel

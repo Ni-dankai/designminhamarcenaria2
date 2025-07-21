@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Scene3D } from './components/Scene3D';
 import { Toolbar } from './components/Toolbar';
 import { InstructionsPanel } from './components/InstructionsPanelNew';
@@ -16,7 +16,6 @@ const App = () => {
     addPiece,
     removePiece,
     clearAllPieces,
-    setInsertionMode,
     defaultThickness,
     setDefaultThickness,
     selectedSpaceId,
@@ -53,26 +52,7 @@ const App = () => {
     };
   }, []); // O array vazio garante que o listener seja adicionado apenas uma vez
 
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    console.log('💾 Salvando projeto...', { space, insertionContext });
-    // You could save to localStorage, export as JSON, etc.
-    const projectData = {
-      space,
-      insertionContext,
-      timestamp: new Date().toISOString()
-    };
-    localStorage.setItem('furniture-design-project', JSON.stringify(projectData));
-    console.log('✅ Projeto salvo!');
-  };
-
-  const handleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
-  };
+  // Remover handleSave e handleFullscreen
 
   // Theme state
   const [theme, setTheme] = useState<'light' | 'dark'>('light');

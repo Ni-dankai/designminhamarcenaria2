@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { PieceType, FurniturePiece } from '../types/furniture';
-import { InsertionMode, InsertionContext } from '../types/insertion';
 
 // Seus Componentes Estilizados (Styled Components)
 // ToolbarContainer, ToolbarSection, ToolButton, etc.
@@ -311,7 +310,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           />
           <span style={{color: 'var(--color-text-muted)', paddingRight: '4px'}}>mm</span>
         </DimensionGroup>
-        <ToolButton onClick={handleApplyDimensions} title="Aplicar dimensões">✓</ToolButton>
+        <ToolButton onClick={handleApplyDimensions} title="Aplicar dimensões" disabled={!hasChanges}>✓</ToolButton>
         <ToolButton onClick={() => setTempDimensions(originalDimensions)} title="Resetar dimensões">↺</ToolButton>
       </ToolbarSection>
 
