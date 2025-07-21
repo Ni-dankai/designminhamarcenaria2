@@ -14,8 +14,7 @@ const App = () => {
     currentTextureUrl, // Adicionado para passar para Scene3D
   } = useSimplifiedFurnitureDesign();
 
-  // Estado para peça selecionada
-  const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
+  // Removido: selectedPieceId e setSelectedPieceId não são mais usados
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>

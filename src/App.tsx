@@ -27,8 +27,7 @@ const App = () => {
     availableTextures,
   } = useSimplifiedFurnitureDesign();
 
-  // Estado para peça selecionada
-  const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
+  // Removido: selectedPieceId e setSelectedPieceId não são mais usados
 
   // NOVO: State para controlar a peça destacada
   const [hoveredPieceId, setHoveredPieceId] = useState<string | null>(null);
