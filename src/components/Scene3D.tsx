@@ -31,9 +31,8 @@ interface Scene3DProps {
   textureUrl: string;
   selectedSpaceId?: string | null;
   onSelectSpace?: (spaceId: string) => void;
-  selectedPieceId?: string | null;
   onSelectPiece?: (pieceId: string) => void;
-  hoveredPieceId?: string | null; // NOVO
+  hoveredPieceId?: string | null;
 }
 
 export const Scene3D: React.FC<Scene3DProps> = ({ 
@@ -42,9 +41,8 @@ export const Scene3D: React.FC<Scene3DProps> = ({
   textureUrl, 
   selectedSpaceId, 
   onSelectSpace, 
-  selectedPieceId, 
   onSelectPiece, 
-  hoveredPieceId // NOVO
+  hoveredPieceId 
 }) => {
   const gridYPosition = - (space.originalDimensions.height / 100) / 2 - 0.2;
   const [gridColors, setGridColors] = useState({ cell: '#e0e0e0', section: '#3b82f6' });

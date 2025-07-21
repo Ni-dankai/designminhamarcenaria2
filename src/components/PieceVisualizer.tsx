@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useTexture, Edges } from '@react-three/drei';
-import { FurniturePiece, PieceType } from '../types/furniture';
+import { FurniturePiece } from '../types/furniture';
 
 interface PieceVisualizerProps {
   piece: FurniturePiece;

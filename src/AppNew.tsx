@@ -11,6 +11,7 @@ const App = () => {
     addPiece,
     setInsertionMode,
     allPieces,
+    currentTextureUrl, // Adicionado para passar para Scene3D
   } = useSimplifiedFurnitureDesign();
 
   // Estado para peça selecionada
@@ -23,6 +24,7 @@ const App = () => {
         allPieces={allPieces}
         selectedPieceId={selectedPieceId}
         onSelectPiece={setSelectedPieceId}
+        textureUrl={currentTextureUrl} // Corrigido: prop obrigatória
       />
 
       <SimplifiedControlPanel
