@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Html } from '@react-three/drei';
+import { Box } from '@react-three/drei';
 import { FurnitureSpace } from '../types/furniture';
 import { ThreeEvent } from '@react-three/fiber';
 
@@ -26,9 +26,11 @@ export const SingleSpaceVisualizer: React.FC<SingleSpaceVisualizerProps> = ({
     return null;
   }
 
-  const color = isSelected ? '#f97316' : '#3b82f6';
+  const color = isSelected ? '#ff6600' : '#3b82f6';
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    if (selectionMode !== 'space') return;
+    
     event.stopPropagation();
     if (onSelect) {
       onSelect(space.id);
@@ -37,50 +39,25 @@ export const SingleSpaceVisualizer: React.FC<SingleSpaceVisualizerProps> = ({
 
   return (
     <group position={[position.x / 100, position.y / 100, position.z / 100]}>
-      {/* =================================================================== */}
-      {/* 1. PARTE VISUAL: Sólida, translúcida, mas SEMPRE ignora o mouse.    */}
-      {/* =================================================================== */}
+      
       <Box
         args={[currentDimensions.width / 100, currentDimensions.height / 100, currentDimensions.depth / 100]}
-        raycast={() => null} // Esta parte é apenas para ver, nunca para clicar.
+        onClick={handleClick}
+        raycast={selectionMode === 'space' ? undefined : () => null}
       >
         <meshStandardMaterial
           color={color}
           transparent
-          opacity={0.15}
+          opacity={isSelected ? 0.35 : 0.15}
           depthWrite={false}
         />
       </Box>
 
       {/* =================================================================== */}
-      {/* 2. PARTE INTERATIVA: Invisível e SÓ É RENDERIZADA no modo 'space'. */}
+      {/* CORREÇÃO: O bloco de código <Html> que renderizava a etiqueta     */}
+      {/* "Espaço Ativo" foi completamente removido.                        */}
       {/* =================================================================== */}
-      {selectionMode === 'space' && (
-        <Box
-          args={[currentDimensions.width / 100, currentDimensions.height / 100, currentDimensions.depth / 100]}
-          onClick={handleClick}
-        >
-          <meshBasicMaterial visible={false} />
-        </Box>
-      )}
-
-      {/* Etiqueta de informações (Html) */}
-      {isSelected && (
-        <Html center position={[0, currentDimensions.height / 200 + 0.15, 0]}>
-          <div style={{
-            background: '#f97316',
-            color: 'white',
-            padding: '4px 10px',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontWeight: 600,
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-          }}>
-            Espaço Ativo: {space.name}
-          </div>
-        </Html>
-      )}
+      
     </group>
   );
 };
