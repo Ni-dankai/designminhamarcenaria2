@@ -4,6 +4,13 @@ import { FurnitureSpace, Dimensions, PieceType, FurniturePiece } from '../types/
 import { InsertionMode, InsertionContext } from '../types/insertion';
 import { SpaceCuttingSystem } from '../utils/spaceCutting';
 
+export const availableTextures = [
+    { name: 'Branco TX', url: '/textures/mdf-branco.jpg' },
+    { name: 'Carvalho', url: '/textures/mdf-carvalho.jpg' },
+    { name: 'Nogueira', url: '/textures/mdf-nogueira.jpg' },
+    { name: 'Cinza Sagrado', url: '/textures/mdf-cinza.jpg' },
+];
+
 const PIECE_CONFIG: Record<string, { name: string; color: string }> = {
     [PieceType.LATERAL_LEFT]: { name: 'Lateral Esquerda', color: '#8b5cf6' },
     [PieceType.LATERAL_RIGHT]: { name: 'Lateral Direita', color: '#8b5cf6' },
@@ -25,6 +32,9 @@ export const useSimplifiedFurnitureDesign = () => {
         originalDimensions: { width: 800, height: 2100, depth: 600 },
     });
     const [insertionContext, setInsertionContext] = useState<InsertionContext>({ mode: InsertionMode.STRUCTURAL });
+
+    // NOVO: State para controlar a textura atual
+    const [currentTextureUrl, setCurrentTextureUrl] = useState(availableTextures[0].url);
 
     const memoizedState = useMemo(() => {
         // Lista final de todas as peças com posições e dimensões corretas para renderizar
@@ -144,9 +154,19 @@ export const useSimplifiedFurnitureDesign = () => {
         if (selectedSpaceId && selectedSpaceId.includes(pieceId)) setSelectedSpaceId('main');
     }, [selectedSpaceId]);
 
+    // =====================================================================================
+    // CORREÇÃO: A função agora atualiza as dimensões sem apagar as peças.
+    // =====================================================================================
     const updateDimensions = useCallback((newDimensions: Dimensions) => {
-        setAllPieces([]);
-        setMainSpaceInfo(prev => ({ ...prev, originalDimensions: newDimensions }));
+        // A linha "setAllPieces([]);" foi removida.
+        
+        // Apenas atualizamos as dimensões originais do móvel.
+        setMainSpaceInfo(prev => ({ 
+            ...prev, 
+            originalDimensions: newDimensions 
+        }));
+        
+        // Resetamos a seleção para o espaço principal.
         setSelectedSpaceId('main');
     }, []);
 
@@ -165,6 +185,10 @@ export const useSimplifiedFurnitureDesign = () => {
         selectedSpaceId, selectSpace: setSelectedSpaceId,
         insertionContext, setInsertionMode,
         defaultThickness, setDefaultThickness,
+        // NOVO: propriedades para textura
+        currentTextureUrl,
+        setCurrentTextureUrl,
+        availableTextures,
     };
 };
 

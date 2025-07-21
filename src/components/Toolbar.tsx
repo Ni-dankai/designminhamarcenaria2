@@ -1,81 +1,24 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { PieceType, FurniturePiece } from '../types/furniture';
 import { InsertionMode, InsertionContext } from '../types/insertion';
 
+// Componentes Estilizados (Styled Components)
 const ToolbarContainer = styled.div`
   position: fixed;
   top: var(--space-4);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--color-toolbar-surface);
-  color: var(--color-text);
+  background: var(--color-toolbar-surface, #ffffffcc);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl, 12px);
+  box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0,0,0,0.1));
+  border: 1px solid var(--color-border, #e5e7eb);
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  max-width: 98vw;
-  width: auto;
-  min-width: 1200px;
-  height: 80px; /* Back to more compact height */
-  overflow: visible;
-  animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateX(-50%) translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-  }
-  
-  @media (max-width: 1400px) {
-    min-width: 1000px;
-    font-size: 0.95em;
-    height: 90px;
-  }
-  
-  @media (max-width: 1200px) {
-    min-width: 900px;
-    height: auto;
-    flex-wrap: wrap;
-    padding: var(--space-4);
-    gap: var(--space-3);
-  }
-  
-  @media (max-width: 1000px) {
-    min-width: 800px;
-    height: auto;
-    flex-wrap: wrap;
-    padding: var(--space-4);
-  }
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: var(--space-3);
-    max-width: 90vw;
-    min-width: unset;
-    height: auto;
-    padding: var(--space-4);
-  }
-
-  /* Glassmorphism effect */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.05));
-    border-radius: var(--radius-xl);
-    pointer-events: none;
-  }
+  gap: var(--space-2);
+  padding: var(--space-2);
 `;
 
 const ToolbarSection = styled.div`
@@ -83,81 +26,40 @@ const ToolbarSection = styled.div`
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  border-right: 1px solid var(--color-border-light);
-  flex-shrink: 0;
   position: relative;
-  height: 100%;
-  justify-content: center;
   
-  &:last-child {
-    border-right: none;
-  }
-  
-  &::after {
+  &:not(:last-child)::after {
     content: '';
     position: absolute;
-    right: -1px;
-    top: 15%;
-    bottom: 15%;
+    right: -2px;
+    top: 25%;
+    bottom: 25%;
     width: 1px;
-    background: linear-gradient(to bottom, transparent, var(--color-border), transparent);
-  }
-  
-  &:last-child::after {
-    display: none;
-  }
-  
-  @media (max-width: 1200px) {
-    border-right: none;
-    padding: var(--space-3);
-    height: auto;
-    min-height: auto;
-    
-    &::after {
-      display: none;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    border-bottom: 1px solid var(--color-border-light);
-    padding: var(--space-2) 0;
-    width: 100%;
-    justify-content: center;
-    height: auto;
-    
-    &:last-child {
-      border-bottom: none;
-    }
+    background-color: var(--color-border);
   }
 `;
 
 const SectionLabel = styled.span`
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--color-text);
-  white-space: nowrap;
+  font-size: var(--font-size-xs, 12px);
+  font-weight: 600;
+  color: var(--color-text-muted, #6b7280);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: relative;
-  margin-right: var(--space-2);
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--color-primary), transparent);
-    border-radius: var(--radius-sm);
-  }
-  
-  @media (max-width: 1400px) {
-    font-size: var(--font-size-xs);
-  }
-  
-  @media (max-width: 1000px) {
-    display: none; /* Hide labels on smaller screens to save space */
+`;
+
+// CORREÇÃO: Props $isActive e $imageUrl agora são "transient"
+const TextureSwatch = styled.button<{ $imageUrl: string; $isActive: boolean }>`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid ${({ $isActive }) => ($isActive ? 'var(--color-primary)' : 'var(--color-border)')};
+  background-image: url(${({ $imageUrl }) => $imageUrl});
+  background-size: cover;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: ${({ $isActive }) => ($isActive ? '0 0 0 4px var(--color-primary)' : 'none')};
+
+  &:hover {
+    transform: scale(1.1);
   }
 `;
 
@@ -173,7 +75,7 @@ const ToolButton = styled.button<{ $color?: string; $variant?: 'primary' | 'seco
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
-  height: 40px; /* Increased for better usability */
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,29 +127,6 @@ const ToolButton = styled.button<{ $color?: string; $variant?: 'primary' | 'seco
     `;
   }}
   
-  /* Ripple effect */
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.3s, height 0.3s;
-  }
-  
-  &:active::before {
-    width: 300px;
-    height: 300px;
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-  
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -256,7 +135,6 @@ const ToolButton = styled.button<{ $color?: string; $variant?: 'primary' | 'seco
     filter: none !important;
   }
   
-  /* Accessibility */
   &:focus-visible {
     outline: 2px solid var(--color-primary-light);
     outline-offset: 2px;
@@ -280,7 +158,7 @@ const ModeToggle = styled.button<{ $isActive: boolean }>`
   position: relative;
   overflow: hidden;
   box-shadow: ${({ $isActive }) => $isActive ? 'var(--shadow-sm)' : 'var(--shadow-sm)'};
-  height: 36px; /* Good size for mode toggles */
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -297,224 +175,114 @@ const ModeToggle = styled.button<{ $isActive: boolean }>`
     border-color: var(--color-primary);
   }
   
-  /* Smooth transition for active state */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(29, 78, 216, 0.1));
-    opacity: ${({ $isActive }) => $isActive ? 1 : 0};
-    transition: opacity 0.3s ease;
-  }
-  
   &:focus-visible {
     outline: 2px solid var(--color-primary-light);
     outline-offset: 2px;
   }
 `;
 
-const PiecesList = styled.div`
-  max-height: 280px;
-  overflow-y: auto;
-  padding: var(--space-2);
-  
-  /* Beautiful scrollbar */
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: var(--color-background-alt);
-    border-radius: var(--radius-sm);
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
-    border-radius: var(--radius-sm);
-  }
-  
-  &::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  }
-`;
-
-const PieceItem = styled.div`
+const DimensionGroup = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-3) var(--space-4);
-  margin-bottom: var(--space-1);
-  border-radius: var(--radius-lg);
-  font-size: var(--font-size-sm);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-  position: relative;
-  overflow: hidden;
-  
-  &:hover {
-    background: var(--color-background-alt);
-    border-color: var(--color-primary);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-  
-  /* Subtle gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.02), transparent);
-    transition: opacity 0.2s ease;
-    opacity: 0;
-    pointer-events: none;
-  }
-  
-  &:hover::before {
-    opacity: 1;
-  }
-`;
-
-const PieceInfo = styled.div`
-  display: flex;
-  flex-direction: column;
   gap: var(--space-1);
-  flex: 1;
 `;
 
-const PieceMainInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-`;
-
-const PieceDimensions = styled.div`
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-  background: var(--color-background-alt);
+const DimensionInput = styled.input`
+  width: 60px;
   padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  font-weight: 500;
-`;
-
-const PieceColor = styled.div<{ $color: string }>`
-  width: 14px;
-  height: 14px;
-  border-radius: var(--radius-sm);
-  background: ${({ $color }) => $color};
-  border: 2px solid var(--color-surface);
-  box-shadow: var(--shadow-sm);
-  flex-shrink: 0;
-`;
-
-const PieceName = styled.span`
-  font-weight: 600;
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-`;
-
-const RemoveButton = styled.button`
-  padding: var(--space-1) var(--space-2);
-  border: none;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-error), #b91c1c);
-  color: white;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  
-  &:hover {
-    background: linear-gradient(135deg, #b91c1c, #991b1b);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-`;
-
-const Dropdown = styled.div<{ $isOpen: boolean; $top: number; $left: number }>`
-  position: fixed;
-  top: ${({ $top }) => $top}px;
-  left: ${({ $left }) => $left}px;
-  background: var(--color-surface);
-  backdrop-filter: blur(20px);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+  }
+`;
+
+// Cole aqui todos os seus "styled-components" para o Toolbar
+// (ToolbarContainer, ToolbarSection, ToolButton, etc.)
+// ...
+
+// Certifique-se de que o Dropdown e outros componentes estilizados estejam definidos.
+const Dropdown = styled.div<{ $isOpen: boolean; }>`
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   z-index: 1001;
   display: ${({ $isOpen }) => $isOpen ? 'block' : 'none'};
   min-width: 320px;
   max-height: 400px;
   overflow: hidden;
-  opacity: ${({ $isOpen }) => $isOpen ? 1 : 0};
-  transform: ${({ $isOpen }) => $isOpen ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.95)'};
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Glassmorphism effect */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.05));
-    border-radius: var(--radius-xl);
-    pointer-events: none;
+  border: 1px solid var(--color-border);
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 `;
 
 const DropdownHeader = styled.div`
-  padding: var(--space-4) var(--space-5);
-  background: linear-gradient(135deg, var(--color-background-alt), var(--color-background));
-  border-bottom: 1px solid var(--color-border-light);
-  font-size: var(--font-size-sm);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-background-alt);
   font-weight: 600;
   color: var(--color-text);
+`;
+
+const PiecesList = styled.div`
+  max-height: 280px;
+  overflow-y: auto;
+  padding: var(--space-2);
+`;
+
+const PieceItem = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative;
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-1);
+  border-radius: var(--radius-md);
+  transition: background 0.2s ease;
   
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: var(--space-5);
-    right: var(--space-5);
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+  &:hover {
+    background: var(--color-background-alt);
   }
 `;
 
-const PieceCount = styled.span`
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  color: white;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-xl);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.8;
-    }
+const PieceName = styled.span`
+  font-weight: 500;
+  color: var(--color-text-secondary);
+`;
+
+const RemoveButton = styled.button`
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 1.2em;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: var(--color-error);
+    background: var(--color-error)15;
   }
 `;
 
-const DropdownContainer = styled.div`
-  position: relative;
-`;
 
+// Interface e Componente Principal
 interface ToolbarProps {
   insertionContext: InsertionContext;
   onModeChange: (mode: InsertionMode) => void;
@@ -522,126 +290,80 @@ interface ToolbarProps {
   onRemovePiece: (pieceId: string) => void;
   onClearAll: () => void;
   pieces: FurniturePiece[];
-  currentDimensions: { width: number; height: number; depth: number };
-  originalDimensions: { width: number; height: number; depth: number };
+  originalDimensions: { width: number; height: number; depth: number }; // Usaremos esta
   onUpdateDimensions: (dimensions: { width: number; height: number; depth: number }) => void;
   defaultThickness: number;
   onThicknessChange: (thickness: number) => void;
-  feedbackMessage?: string | null;
+  availableTextures: { name: string; url: string; }[];
+  currentTextureUrl: string;
+  onTextureChange: (url: string) => void;
+  onHoverPiece: (id: string | null) => void; // Nova prop para a função
+  [key: string]: any; // Permite outras props
 }
 
-export const Toolbar = ({ 
+export const Toolbar: React.FC<ToolbarProps> = ({ 
   insertionContext, 
   onModeChange, 
   onAddPiece,
   onRemovePiece,
   onClearAll,
   pieces,
-  currentDimensions,
-  originalDimensions,
+  originalDimensions, // Usando a prop de dimensões originais
   onUpdateDimensions,
   defaultThickness,
   onThicknessChange,
-  feedbackMessage,
-}: ToolbarProps) => {
+  availableTextures,
+  currentTextureUrl,
+  onTextureChange,
+  onHoverPiece,
+  // ... outras props
+}) => {
+  // =====================================================================================
+  // CORREÇÃO: Lógica para controlar a visibilidade do dropdown
+  // =====================================================================================
   const [showPiecesList, setShowPiecesList] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
-  // Estados para controles de dimensão
-  const [tempDimensions, setTempDimensions] = useState({
-    width: currentDimensions.width,
-    height: currentDimensions.height,
-    depth: currentDimensions.depth
-  });
-  
-  // Estado para erros de validação da chapa
-  const [sheetValidationErrors, setSheetValidationErrors] = useState<string[]>([]);
-  
-  // Atualizar dimensões temporárias quando as atuais mudarem
-  useEffect(() => {
-    setTempDimensions({
-      width: currentDimensions.width,
-      height: currentDimensions.height,
-      depth: currentDimensions.depth
-    });
-    setSheetValidationErrors([]); // Limpar erros ao resetar
-  }, [currentDimensions]);
-  
-  // Validar em tempo real conforme o usuário digita
-  useEffect(() => {
-    const validation = validateSheetDimensions(tempDimensions.width, tempDimensions.height, tempDimensions.depth);
-    if (!validation.valido && tempDimensions.width > 0 && tempDimensions.height > 0 && tempDimensions.depth > 0) {
-      const erros = Object.values(validation.erros).filter(erro => erro !== null);
-      setSheetValidationErrors(erros);
-    } else {
-      setSheetValidationErrors([]);
-    }
-  }, [tempDimensions]);
-  
-  // Aplicar novas dimensões
-  const handleApplyDimensions = () => {
-    if (tempDimensions.width > 0 && tempDimensions.height > 0 && tempDimensions.depth > 0) {
-      // Validar dimensões baseadas na chapa
-      const validation = validateSheetDimensions(tempDimensions.width, tempDimensions.height, tempDimensions.depth);
-      
-      if (!validation.valido) {
-        const erros = Object.values(validation.erros).filter(erro => erro !== null);
-        setSheetValidationErrors(erros);
-        console.warn('❌ Dimensões inválidas para chapa padrão:', erros);
-        return;
-      }
-      
-      // Limpar erros se validação passou
-      setSheetValidationErrors([]);
-      onUpdateDimensions(tempDimensions);
-    }
-  };
-  
-  // Resetar para dimensões originais
-  const handleResetDimensions = () => {
-    setTempDimensions(originalDimensions);
-    onUpdateDimensions(originalDimensions);
-  };
 
-  useEffect(() => {
-    if (showPiecesList && buttonRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const minMargin = 16; // margem mínima
-      const dropdownWidth = 320; // min-width do dropdown
-      const toolbarHeight = 80; // altura do toolbar
-
-      // Posição padrão: abaixo do toolbar, centralizado em relação ao botão
-      let top = toolbarHeight + minMargin; // sempre abaixo do toolbar
-      // Centralizar o dropdown em relação ao botão
-      let left = buttonRect.left + (buttonRect.width / 2) - (dropdownWidth / 2);
-      // Garantir que não ultrapasse a borda esquerda
-      if (left < minMargin) left = minMargin;
-      // Garantir que não ultrapasse a borda direita
-      if (left + dropdownWidth > viewportWidth - minMargin) {
-        left = viewportWidth - dropdownWidth - minMargin;
-      }
-
-      setDropdownPosition({ top, left });
-    }
-  }, [showPiecesList]);
-
-  // Fechar dropdown ao clicar fora
+  // Hook para fechar o dropdown ao clicar fora dele
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
-          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowPiecesList(false);
       }
     };
-
+    // Adiciona o listener quando o dropdown está aberto
     if (showPiecesList) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
     }
+    // Remove o listener ao limpar o efeito
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [showPiecesList]);
+
+  // =====================================================================================
+  // CORREÇÃO: O state dos inputs agora é baseado em `originalDimensions`
+  // =====================================================================================
+  const [tempDimensions, setTempDimensions] = useState(originalDimensions);
+
+  // O state só é atualizado se a prop `originalDimensions` mudar externamente
+  useEffect(() => {
+    setTempDimensions(originalDimensions);
+  }, [originalDimensions]);
+
+  const handleApplyDimensions = () => {
+    onUpdateDimensions(tempDimensions);
+  };
+  
+  const handleResetDimensions = () => {
+    // Apenas reseta os valores nos campos de input para as dimensões totais atuais
+    setTempDimensions(originalDimensions);
+  };
+
+  // A lógica de "mudanças" agora compara com as dimensões totais
+  const hasChanges = tempDimensions.width !== originalDimensions.width || 
+                     tempDimensions.height !== originalDimensions.height || 
+                     tempDimensions.depth !== originalDimensions.depth;
 
   const structuralPieces = [
     { type: PieceType.LATERAL_LEFT, name: 'L.Esq', color: '#8b5cf6', position: 1 },
@@ -657,175 +379,82 @@ export const Toolbar = ({
     { type: PieceType.DIVIDER_VERTICAL, name: 'Div.V', color: '#3b82f6', position: 2 },
   ];
 
-  const hasInternalSpace = currentDimensions.width > 0 && 
-                          currentDimensions.height > 0 && 
-                          currentDimensions.depth > 0;
-
-  // Constantes da chapa padrão
-  const CHAPA_MAX_COMPRIMENTO = 2750; // mm
-  const CHAPA_MAX_LARGURA = 1850; // mm
-  
-  // Função para validar dimensões baseadas no tamanho da chapa
-  const validateSheetDimensions = (width: number, height: number, depth: number) => {
-    // Para móveis, consideramos as dimensões horizontais (width x depth)
-    // A maior dimensão horizontal é o comprimento, a menor é a largura
-    const horizontalDimensions = [width, depth].sort((a, b) => b - a);
-    const comprimento = horizontalDimensions[0];
-    const largura = horizontalDimensions[1];
-    
-    // Altura é sempre vertical, não afetada pelos limites da chapa para estrutura
-    const alturaValida = height <= Math.max(CHAPA_MAX_COMPRIMENTO, CHAPA_MAX_LARGURA);
-    const comprimentoValido = comprimento <= CHAPA_MAX_COMPRIMENTO;
-    const larguraValida = largura <= CHAPA_MAX_LARGURA;
-    
-    return {
-      valido: alturaValida && comprimentoValido && larguraValida,
-      comprimento,
-      largura,
-      altura: height,
-      erros: {
-        comprimento: !comprimentoValido ? `Comprimento ${comprimento}mm excede limite da chapa (${CHAPA_MAX_COMPRIMENTO}mm)` : null,
-        largura: !larguraValida ? `Largura ${largura}mm excede limite da chapa (${CHAPA_MAX_LARGURA}mm)` : null,
-        altura: !alturaValida ? `Altura ${height}mm excede limite da chapa (${Math.max(CHAPA_MAX_COMPRIMENTO, CHAPA_MAX_LARGURA)}mm)` : null,
-      }
-    };
-  };
+  const hasInternalSpace = originalDimensions.width > 0 && 
+                          originalDimensions.height > 0 && 
+                          originalDimensions.depth > 0;
 
   return (
-    <>
-      {feedbackMessage && (
-        <div style={{ color: feedbackMessage.includes('❌') ? 'var(--color-error)' : 'var(--color-success)', marginBottom: 'var(--space-3)' }}>
-          {feedbackMessage}
-        </div>
-      )}
-      <ToolbarContainer>
-      {/* Seção de Modo */}
-      <ToolbarSection>
-        <SectionLabel>Modo</SectionLabel>
-        <ModeToggle
-          $isActive={insertionContext.mode === InsertionMode.STRUCTURAL}
-          onClick={() => onModeChange(InsertionMode.STRUCTURAL)}
-        >
-          Estrutural
-        </ModeToggle>
-        <ModeToggle
-          $isActive={insertionContext.mode === InsertionMode.INTERNAL}
-          onClick={() => onModeChange(InsertionMode.INTERNAL)}
-        >
-          Interno
-        </ModeToggle>
-      </ToolbarSection>
+    <ToolbarContainer>
+        {/* Seção de Modo */}
+        <ToolbarSection>
+            <SectionLabel>Modo</SectionLabel>
+            <ModeToggle
+              $isActive={insertionContext.mode === InsertionMode.STRUCTURAL}
+              onClick={() => onModeChange(InsertionMode.STRUCTURAL)}
+            >
+              Estrutural
+            </ModeToggle>
+            <ModeToggle
+              $isActive={insertionContext.mode === InsertionMode.INTERNAL}
+              onClick={() => onModeChange(InsertionMode.INTERNAL)}
+            >
+              Interno
+            </ModeToggle>
+        </ToolbarSection>
 
-      {/* Seção de Espessura */}
-      <ToolbarSection>
-        <SectionLabel>Espessura</SectionLabel>
-        <input
-          type="number"
-          value={defaultThickness}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onThicknessChange(Number(e.target.value))}
-          min="1"
-          max="200"
-          title="Espessura das peças em milímetros"
-        />
-        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text)' }}>mm</span>
-      </ToolbarSection>
+        {/* Seção de Espessura */}
+        <ToolbarSection>
+            <SectionLabel>Espessura</SectionLabel>
+            <input
+              type="number"
+              value={defaultThickness}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onThicknessChange(Number(e.target.value))}
+              min="1"
+              max="200"
+              title="Espessura das peças em milímetros"
+            />
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text)' }}>mm</span>
+        </ToolbarSection>
 
-      {/* Seção de Controles de Dimensão */}
-      <ToolbarSection>
-        <SectionLabel>Dimensões</SectionLabel>
-        <label>
-          L:
-          <input
-            type="number"
-            value={tempDimensions.width}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempDimensions(prev => ({
-              ...prev,
-              width: Number(e.target.value) || 0
-            }))}
-            min="1"
-            max="10000"
-            title="Largura do móvel"
-          />
-        </label>
-        <label>
-          A:
-          <input
-            type="number"
-            value={tempDimensions.height}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempDimensions(prev => ({
-              ...prev,
-              height: Number(e.target.value) || 0
-            }))}
-            min="1"
-            max="10000"
-            title="Altura do móvel"
-          />
-        </label>
-        <label>
-          P:
-          <input
-            type="number"
-            value={tempDimensions.depth}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempDimensions(prev => ({
-              ...prev,
-              depth: Number(e.target.value) || 0
-            }))}
-            min="1"
-            max="10000"
-            title="Profundidade do móvel"
-          />
-        </label>
-        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text)' }}>mm</span>
-        
-        <ToolButton
-          $variant="primary"
-          onClick={handleApplyDimensions}
-          disabled={
-            (tempDimensions.width === currentDimensions.width &&
-            tempDimensions.height === currentDimensions.height &&
-            tempDimensions.depth === currentDimensions.depth) ||
-            sheetValidationErrors.length > 0
-          }
-          title={sheetValidationErrors.length > 0 ? 
-            "Corrija os erros de dimensão antes de aplicar" : 
-            "Aplicar novas dimensões"}
-          style={{ marginLeft: 'var(--space-2)' }}
-        >
-          ✓
-        </ToolButton>
-        <ToolButton
-          $variant="secondary"
-          onClick={handleResetDimensions}
-          title="Resetar para dimensões originais"
-        >
-          ↺
-        </ToolButton>
-      </ToolbarSection>
+        {/* Seção de Dimensões */}
+        <ToolbarSection>
+            <SectionLabel>Dimensões</SectionLabel>
+            <DimensionGroup>
+                <SectionLabel style={{marginLeft: '4px'}}>L</SectionLabel>
+                <DimensionInput type="number" value={tempDimensions.width} onChange={(e) => setTempDimensions(p => ({...p, width: Number(e.target.value)}))} />
+                <SectionLabel>A</SectionLabel>
+                <DimensionInput type="number" value={tempDimensions.height} onChange={(e) => setTempDimensions(p => ({...p, height: Number(e.target.value)}))} />
+                <SectionLabel>P</SectionLabel>
+                <DimensionInput type="number" value={tempDimensions.depth} onChange={(e) => setTempDimensions(p => ({...p, depth: Number(e.target.value)}))} />
+                <span style={{color: 'var(--color-text-muted)', paddingRight: '4px'}}>mm</span>
+            </DimensionGroup>
+            <ToolButton $variant="secondary" onClick={handleApplyDimensions} disabled={!hasChanges} title="Aplicar dimensões">✓</ToolButton>
+            <ToolButton $variant="secondary" onClick={handleResetDimensions} title="Resetar dimensões">↺</ToolButton>
+        </ToolbarSection>
 
-      {/* Seção de Adição de Peças */}
-      <ToolbarSection>
-        <SectionLabel>
-          {insertionContext.mode === InsertionMode.STRUCTURAL ? 'Estrutural' : 'Interno'}
-        </SectionLabel>
-        
-        {insertionContext.mode === InsertionMode.STRUCTURAL ? (
-          <>
-            {structuralPieces.map((piece) => (
-              <ToolButton
-                key={piece.type}
-                $color={piece.color}
-                onClick={() => onAddPiece(piece.type)}
-                style={{ fontSize: 'var(--font-size-xs)', padding: 'var(--space-1) var(--space-2', marginRight: 'var(--space-1)' }}
-              >
-                {piece.name}
-              </ToolButton>
+        {/* Seção de Acabamento (Textura) */}
+        <ToolbarSection>
+            <SectionLabel>Acabamento</SectionLabel>
+            {availableTextures.map(texture => (
+                <TextureSwatch
+                    key={texture.url}
+                    $imageUrl={texture.url}
+                    $isActive={currentTextureUrl === texture.url}
+                    onClick={() => onTextureChange(texture.url)}
+                    title={texture.name}
+                />
             ))}
-          </>
-        ) : (
-          <>
-            {hasInternalSpace ? (
+        </ToolbarSection>
+
+        {/* Seção de Adição de Peças */}
+        <ToolbarSection>
+            <SectionLabel>
+              {insertionContext.mode === InsertionMode.STRUCTURAL ? 'Estrutural' : 'Interno'}
+            </SectionLabel>
+            
+            {insertionContext.mode === InsertionMode.STRUCTURAL ? (
               <>
-                {internalPieces.map((piece) => (
+                {structuralPieces.map((piece) => (
                   <ToolButton
                     key={piece.type}
                     $color={piece.color}
@@ -837,75 +466,70 @@ export const Toolbar = ({
                 ))}
               </>
             ) : (
-              <span style={{ fontSize: '11px', padding: '8px', color: 'var(--color-text-muted)' }}>
-                ⚠️ Adicione peças estruturais primeiro
-              </span>
+              <>
+                {hasInternalSpace ? (
+                  <>
+                    {internalPieces.map((piece) => (
+                      <ToolButton
+                        key={piece.type}
+                        $color={piece.color}
+                        onClick={() => onAddPiece(piece.type)}
+                        style={{ fontSize: 'var(--font-size-xs)', padding: 'var(--space-1) var(--space-2', marginRight: 'var(--space-1)' }}
+                      >
+                        {piece.name}
+                      </ToolButton>
+                    ))}
+                  </>
+                ) : (
+                  <span style={{ fontSize: '11px', padding: '8px', color: 'var(--color-text-muted)' }}>
+                    ⚠️ Adicione peças estruturais primeiro
+                  </span>
+                )}
+              </>
             )}
-          </>
-        )}
-      </ToolbarSection>
+        </ToolbarSection>
 
-      {/* Seção de Gerenciamento */}
-      <ToolbarSection>
-        <SectionLabel>Gerenciar</SectionLabel>
-        
-        <DropdownContainer>
-          <ToolButton
-            ref={buttonRef}
-            $variant="secondary"
-            disabled={pieces.length === 0}
-            onClick={() => setShowPiecesList(!showPiecesList)}
-            style={{ marginRight: 'var(--space-2)' }}
-          >
-            Peças ({pieces.length}) {pieces.length > 0 ? (showPiecesList ? '▲' : '▼') : ''}
-          </ToolButton>
-        </DropdownContainer>
+        {/* Seção de Gerenciamento */}
+        <ToolbarSection>
+            <SectionLabel>Gerenciar</SectionLabel>
+            
+            {/* CORREÇÃO: `ref` adicionado para detectar cliques fora */}
+            <div style={{position: 'relative'}} ref={dropdownRef}>
+                <ToolButton 
+                    $variant="secondary"
+                    disabled={pieces.length === 0}
+                    // A função de toggle do estado
+                    onClick={() => setShowPiecesList(s => !s)}>
+                    Peças ({pieces.length}) {showPiecesList ? '▲' : '▼'}
+                </ToolButton>
+                {/* O estado `showPiecesList` controla a propriedade `$isOpen` */}
+                <Dropdown $isOpen={showPiecesList}>
+                    <DropdownHeader>Peças Adicionadas</DropdownHeader>
+                    <PiecesList>
+                        {pieces.length > 0 ? pieces.map((piece) => (
+                            <PieceItem 
+                              key={piece.id}
+                              // NOVO: Eventos de mouse para destacar a peça
+                              onMouseEnter={() => onHoverPiece(piece.id)}
+                              onMouseLeave={() => onHoverPiece(null)}
+                            >
+                                <PieceName>{piece.name}</PieceName>
+                                <RemoveButton onClick={() => onRemovePiece(piece.id)} title={`Remover ${piece.name}`}>×</RemoveButton>
+                            </PieceItem>
+                        )) : <div style={{padding: '16px', color: 'var(--color-text-muted)'}}>Nenhuma peça.</div>}
+                    </PiecesList>
+                </Dropdown>
+            </div>
 
-        <ToolButton
-          $variant="danger"
-          onClick={onClearAll}
-          disabled={pieces.length === 0}
-        >
-          Limpar
-        </ToolButton>
-
-        {pieces.length > 0 && (
-          <Dropdown 
-            ref={dropdownRef}
-            $isOpen={showPiecesList}
-            $top={dropdownPosition.top}
-            $left={dropdownPosition.left}
-          >
-            <DropdownHeader>
-              <span>Peças Adicionadas</span>
-              <PieceCount>{pieces.length}</PieceCount>
-            </DropdownHeader>
-            <PiecesList>
-              {pieces.map((piece) => (
-                <PieceItem key={piece.id}>
-                  <PieceInfo>
-                    <PieceMainInfo>
-                      <PieceColor $color={piece.color} />
-                      <PieceName>{piece.name}</PieceName>
-                    </PieceMainInfo>
-                    <PieceDimensions>
-                      <span style={{color: 'var(--color-text)'}}>{Math.round(piece.dimensions.width)}×{Math.round(piece.dimensions.height)}×{Math.round(piece.dimensions.depth)}mm</span>
-                    </PieceDimensions>
-                  </PieceInfo>
-                  <RemoveButton 
-                    onClick={e => { e.stopPropagation(); onRemovePiece(piece.id); }}
-                    title={`Remover ${piece.name}`}
-                  >
-                    ✕
-                  </RemoveButton>
-                </PieceItem>
-              ))}
-            </PiecesList>
-          </Dropdown>
-        )}
-      </ToolbarSection>
+            <ToolButton
+              $variant="danger"
+              onClick={onClearAll}
+              disabled={pieces.length === 0}
+            >
+              Limpar
+            </ToolButton>
+        </ToolbarSection>
 
     </ToolbarContainer>
-    </>
   );
 };

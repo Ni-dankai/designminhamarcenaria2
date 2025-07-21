@@ -1,4 +1,5 @@
-import { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Grid } from '@react-three/drei';
 import { FurnitureSpace, FurniturePiece } from '../types/furniture';
@@ -6,6 +7,7 @@ import { SingleSpaceVisualizer } from './SingleSpaceVisualizer';
 import { PieceVisualizer } from './PieceVisualizer';
 import { LoadingSpinner } from './LoadingSpinner';
 
+// Componente recursivo para desenhar os espaços disponíveis (folhas da árvore)
 const RecursiveSpaceVisualizer = ({ space, selectedSpaceId, onSelectSpace }: { space: FurnitureSpace; selectedSpaceId?: string | null; onSelectSpace?: (spaceId: string) => void }) => {
   if (!space.isActive && space.subSpaces?.length) {
     return (
@@ -16,45 +18,103 @@ const RecursiveSpaceVisualizer = ({ space, selectedSpaceId, onSelectSpace }: { s
       </>
     );
   }
-  return <SingleSpaceVisualizer space={space} isSelected={selectedSpaceId === space.id} onSelect={onSelectSpace} />;
+  if (space.isActive) {
+    return <SingleSpaceVisualizer space={space} isSelected={selectedSpaceId === space.id} onSelect={onSelectSpace} />;
+  }
+  return null;
 };
+
 
 interface Scene3DProps {
   space: FurnitureSpace;
-  allPieces: FurniturePiece[]; // <-- Recebe a lista plana de peças
+  allPieces: FurniturePiece[];
+  textureUrl: string;
   selectedSpaceId?: string | null;
   onSelectSpace?: (spaceId: string) => void;
   selectedPieceId?: string | null;
   onSelectPiece?: (pieceId: string) => void;
+  hoveredPieceId?: string | null; // NOVO
 }
 
-export const Scene3D = ({ space, allPieces, selectedSpaceId, onSelectSpace, onSelectPiece }: Scene3DProps) => {
+export const Scene3D: React.FC<Scene3DProps> = ({ 
+  space, 
+  allPieces, 
+  textureUrl, 
+  selectedSpaceId, 
+  onSelectSpace, 
+  selectedPieceId, 
+  onSelectPiece, 
+  hoveredPieceId // NOVO
+}) => {
   const gridYPosition = - (space.originalDimensions.height / 100) / 2 - 0.2;
+  const [gridColors, setGridColors] = useState({ cell: '#e0e0e0', section: '#3b82f6' });
+
+  useEffect(() => {
+    const computedStyle = getComputedStyle(document.documentElement);
+    const cellColor = computedStyle.getPropertyValue('--color-border').trim();
+    const sectionColor = computedStyle.getPropertyValue('--color-primary').trim();
+    if (cellColor && sectionColor) {
+      setGridColors({ cell: cellColor, section: sectionColor });
+    }
+  }, []);
 
   return (
     <Suspense fallback={<LoadingSpinner message="Carregando visualização 3D..." />}>
-        <Canvas camera={{ position: [5, 5, 15], fov: 55 }} style={{ background: 'var(--color-background-gradient)' }}>
-          <Suspense fallback={null}> 
-            <ambientLight intensity={0.7} />
-            <directionalLight position={[10, 10, 5]} intensity={1.2} />
-            <Environment preset="studio" />
-            <Grid position={[0, gridYPosition, 0]} args={[25, 25]} cellColor="var(--color-border)" sectionColor="var(--color-primary)" infiniteGrid />
+      <Canvas 
+        shadows
+        camera={{ position: [5, 4, 12], fov: 50 }} 
+        style={{ background: 'var(--color-background-gradient)' }}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          outputEncoding: THREE.sRGBEncoding,
+        }}
+      >
+        <Suspense fallback={null}> 
+          {/* =================================================================== */}
+          {/* NOVA ILUMINAÇÃO: Mais suave e com melhor qualidade visual         */}
+          {/* =================================================================== */}
+          <hemisphereLight color={"#d3d8e0"} groundColor={"#666666"} intensity={0.2} />
+          
+          <directionalLight 
+            position={[4, 8, 6]} 
+            intensity={1.5} 
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            shadow-bias={-0.0001}
+          />
+
+          <directionalLight 
+            position={[-4, 2, -4]} 
+            intensity={0.2}
+          />
+          
+          <Environment preset="apartment" /> 
+          
+          <Grid 
+            position={[0, gridYPosition, 0]} 
+            args={[25, 25]} 
+            cellColor={gridColors.cell} 
+            sectionColor={gridColors.section} 
+            infiniteGrid 
+          />
             
-            {/* Renderiza a árvore de espaços vazios */}
-            <RecursiveSpaceVisualizer space={space} selectedSpaceId={selectedSpaceId} onSelectSpace={onSelectSpace} />
+          <RecursiveSpaceVisualizer space={space} selectedSpaceId={selectedSpaceId} onSelectSpace={onSelectSpace} />
 
-            {/* Renderiza a lista plana de todas as peças já posicionadas */}
-            {allPieces.map((piece) => (
-              <PieceVisualizer 
-                key={piece.id}
-                piece={piece} 
-                onClick={() => onSelectPiece && onSelectPiece(piece.id)}
-              />
-            ))}
+          {allPieces.map((piece) => (
+            <PieceVisualizer 
+              key={piece.id}
+              piece={piece} 
+              textureUrl={textureUrl}
+              onClick={() => onSelectPiece && onSelectPiece(piece.id)}
+              isHovered={piece.id === hoveredPieceId}
+            />
+          ))}
 
-            <OrbitControls maxPolarAngle={Math.PI / 1.5} minDistance={2} maxDistance={50} />
-          </Suspense>
-        </Canvas>
+          <OrbitControls makeDefault maxPolarAngle={Math.PI / 1.8} minDistance={2} maxDistance={50} />
+        </Suspense>
+      </Canvas>
     </Suspense>
   );
 };

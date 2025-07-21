@@ -21,10 +21,17 @@ const App = () => {
     selectSpace,
     activeSpaces,
     updateDimensions,
+    // Novas propriedades de textura:
+    currentTextureUrl,
+    setCurrentTextureUrl,
+    availableTextures,
   } = useSimplifiedFurnitureDesign();
 
   // Estado para peça selecionada
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
+
+  // NOVO: State para controlar a peça destacada
+  const [hoveredPieceId, setHoveredPieceId] = useState<string | null>(null);
 
   const handleSave = () => {
     // TODO: Implement save functionality
@@ -95,6 +102,10 @@ const App = () => {
         onSelectSpace={selectSpace}
         selectedPieceId={selectedPieceId}
         onSelectPiece={setSelectedPieceId}
+        // Nova prop de textura:
+        textureUrl={currentTextureUrl}
+        // NOVO: Passa o ID da peça destacada para a cena
+        hoveredPieceId={hoveredPieceId}
       />
 
       <Toolbar
@@ -109,6 +120,12 @@ const App = () => {
         onUpdateDimensions={updateDimensions}
         defaultThickness={defaultThickness}
         onThicknessChange={setDefaultThickness}
+        // Novas props de textura:
+        availableTextures={availableTextures}
+        currentTextureUrl={currentTextureUrl}
+        onTextureChange={setCurrentTextureUrl}
+        // NOVO: Passa a função para atualizar o estado de peça destacada
+        onHoverPiece={setHoveredPieceId}
       />
 
       <SpaceSelector
