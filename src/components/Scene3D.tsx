@@ -8,18 +8,23 @@ import { PieceVisualizer } from './PieceVisualizer';
 import { LoadingSpinner } from './LoadingSpinner';
 
 // Componente recursivo para desenhar os espaços disponíveis (folhas da árvore)
-const RecursiveSpaceVisualizer = ({ space, selectedSpaceId, onSelectSpace }: { space: FurnitureSpace; selectedSpaceId?: string | null; onSelectSpace?: (spaceId: string) => void }) => {
+const RecursiveSpaceVisualizer = ({ space, selectedSpaceId, onSelectSpace, selectionMode }: { 
+  space: FurnitureSpace; 
+  selectedSpaceId?: string | null; 
+  onSelectSpace?: (spaceId: string) => void;
+  selectionMode: 'piece' | 'space';
+}) => {
   if (!space.isActive && space.subSpaces?.length) {
     return (
       <>
         {space.subSpaces.map(sub => (
-          <RecursiveSpaceVisualizer key={sub.id} space={sub} selectedSpaceId={selectedSpaceId} onSelectSpace={onSelectSpace} />
+          <RecursiveSpaceVisualizer key={sub.id} space={sub} selectedSpaceId={selectedSpaceId} onSelectSpace={onSelectSpace} selectionMode={selectionMode} />
         ))}
       </>
     );
   }
   if (space.isActive) {
-    return <SingleSpaceVisualizer space={space} isSelected={selectedSpaceId === space.id} onSelect={onSelectSpace} />;
+    return <SingleSpaceVisualizer space={space} isSelected={selectedSpaceId === space.id} onSelect={onSelectSpace} selectionMode={selectionMode} />;
   }
   return null;
 };
@@ -31,8 +36,10 @@ interface Scene3DProps {
   textureUrl: string;
   selectedSpaceId?: string | null;
   onSelectSpace?: (spaceId: string) => void;
-  onSelectPiece?: (pieceId: string) => void;
+  onPieceClick?: (piece: FurniturePiece) => void; // Renomeado e tipo atualizado
   hoveredPieceId?: string | null;
+  selectedPieceId?: string | null; // Adicionado
+  selectionMode?: 'piece' | 'space'; // Nova prop
 }
 
 export const Scene3D: React.FC<Scene3DProps> = ({ 
@@ -41,8 +48,10 @@ export const Scene3D: React.FC<Scene3DProps> = ({
   textureUrl, 
   selectedSpaceId, 
   onSelectSpace, 
-  onSelectPiece, 
-  hoveredPieceId 
+  onPieceClick, // Renomeado
+  hoveredPieceId,
+  selectedPieceId, // Adicionado
+  selectionMode = 'piece' // Define um valor padrão
 }) => {
   const gridYPosition = - (space.originalDimensions.height / 100) / 2 - 0.2;
   const [gridColors, setGridColors] = useState({ cell: '#e0e0e0', section: '#3b82f6' });
@@ -70,24 +79,22 @@ export const Scene3D: React.FC<Scene3DProps> = ({
       >
         <Suspense fallback={null}> 
           {/* =================================================================== */}
-          {/* NOVA ILUMINAÇÃO: Mais suave e com melhor qualidade visual         */}
+          {/* CORREÇÃO: Iluminação ajustada para maior claridade e definição    */}
           {/* =================================================================== */}
-          <hemisphereLight color={"#d3d8e0"} groundColor={"#666666"} intensity={0.2} />
           
+          {/* Luz ambiente mais forte para clarear a cena como um todo */}
+          <ambientLight intensity={0.8} />
+          
+          {/* Luz principal (sol) mais intensa para destacar a textura */}
           <directionalLight 
-            position={[4, 8, 6]} 
-            intensity={1.5} 
-            castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            shadow-bias={-0.0001}
-          />
-
-          <directionalLight 
-            position={[-4, 2, -4]} 
-            intensity={0.2}
+              position={[5, 10, 8]} 
+              intensity={1.5} 
+              castShadow
+              shadow-mapSize-width={2048}
+              shadow-mapSize-height={2048}
           />
           
+          {/* Ambiente para reflexos, mantendo uma intensidade equilibrada */}
           <Environment preset="apartment" /> 
           
           <Grid 
@@ -98,15 +105,17 @@ export const Scene3D: React.FC<Scene3DProps> = ({
             infiniteGrid 
           />
             
-          <RecursiveSpaceVisualizer space={space} selectedSpaceId={selectedSpaceId} onSelectSpace={onSelectSpace} />
+          <RecursiveSpaceVisualizer space={space} selectedSpaceId={selectedSpaceId} onSelectSpace={onSelectSpace} selectionMode={selectionMode} />
 
           {allPieces.map((piece) => (
             <PieceVisualizer 
               key={piece.id}
               piece={piece} 
               textureUrl={textureUrl}
-              onClick={() => onSelectPiece && onSelectPiece(piece.id)}
+              onClick={() => onPieceClick && onPieceClick(piece)}
               isHovered={piece.id === hoveredPieceId}
+              isSelected={piece.id === selectedPieceId}
+              selectionMode={selectionMode} // Passa a prop para o visualizador
             />
           ))}
 

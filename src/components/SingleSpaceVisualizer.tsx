@@ -1,43 +1,32 @@
+import React from 'react';
 import { Box, Html } from '@react-three/drei';
 import { FurnitureSpace } from '../types/furniture';
-import { useState } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 
 interface SingleSpaceVisualizerProps {
   space: FurnitureSpace;
   isSelected?: boolean;
   onSelect?: (spaceId: string) => void;
+  selectionMode: 'piece' | 'space';
 }
 
-export const SingleSpaceVisualizer = ({ space, isSelected = false, onSelect }: SingleSpaceVisualizerProps) => {
-  const { currentDimensions, position = { x: 0, y: 0, z: 0 }, parentSpaceId } = space;
-  const [hovered, setHovered] = useState(false);
-
-  // Verificar se há espaço disponível
-  const hasSpace = currentDimensions.width > 0 && 
-                   currentDimensions.height > 0 && 
-                   currentDimensions.depth > 0;
+export const SingleSpaceVisualizer: React.FC<SingleSpaceVisualizerProps> = ({ 
+  space, 
+  isSelected = false, 
+  onSelect, 
+  selectionMode 
+}) => {
+  const { currentDimensions, position = { x: 0, y: 0, z: 0 } } = space;
+  
+  const hasSpace = currentDimensions.width > 1 && 
+                   currentDimensions.height > 1 && 
+                   currentDimensions.depth > 1;
 
   if (!hasSpace) {
     return null;
   }
 
-  // Cores diferentes para espaços principais e divididos
-  const isSubSpace = !!parentSpaceId;
-  let color = isSubSpace ? "#10b981" : "#3b82f6"; // Verde para sub-espaços, azul para principal
-  let wireframeColor = isSubSpace ? "#059669" : "#1d4ed8";
-  let opacity = 0.3;
-
-  // Estados visuais para seleção e hover
-  if (isSelected) {
-    color = "#f59e0b"; // Laranja para selecionado
-    wireframeColor = "#d97706";
-    opacity = 0.5;
-  } else if (hovered) {
-    color = isSubSpace ? "#22c55e" : "#2563eb"; // Verde mais claro para sub-espaços, azul mais claro para principal
-    wireframeColor = isSubSpace ? "#16a34a" : "#1d4ed8";
-    opacity = 0.6;
-  }
+  const color = isSelected ? '#f97316' : '#3b82f6';
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
@@ -48,56 +37,47 @@ export const SingleSpaceVisualizer = ({ space, isSelected = false, onSelect }: S
 
   return (
     <group position={[position.x / 100, position.y / 100, position.z / 100]}>
-      {/* Espaço Disponível - Clicável */}
+      {/* =================================================================== */}
+      {/* 1. PARTE VISUAL: Sólida, translúcida, mas SEMPRE ignora o mouse.    */}
+      {/* =================================================================== */}
       <Box
         args={[currentDimensions.width / 100, currentDimensions.height / 100, currentDimensions.depth / 100]}
-        position={[0, 0, 0]}
-        onClick={handleClick}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
+        raycast={() => null} // Esta parte é apenas para ver, nunca para clicar.
       >
-        <meshStandardMaterial 
+        <meshStandardMaterial
           color={color}
-          transparent 
-          opacity={opacity}
-          wireframe={false}
-        />
-      </Box>
-
-      {/* Wireframe do Espaço */}
-      <Box
-        args={[currentDimensions.width / 100, currentDimensions.height / 100, currentDimensions.depth / 100]}
-        position={[0, 0, 0]}
-      >
-        <meshStandardMaterial 
-          color={wireframeColor}
-          wireframe 
           transparent
-          opacity={0.8}
+          opacity={0.15}
+          depthWrite={false}
         />
       </Box>
 
-      {/* Label do Espaço - Só aparece no hover ou quando selecionado */}
-      {(hovered || isSelected) && (
-        <Html
-          position={[0, currentDimensions.height / 100 / 2 + 0.5, 0]}
-          center
+      {/* =================================================================== */}
+      {/* 2. PARTE INTERATIVA: Invisível e SÓ É RENDERIZADA no modo 'space'. */}
+      {/* =================================================================== */}
+      {selectionMode === 'space' && (
+        <Box
+          args={[currentDimensions.width / 100, currentDimensions.height / 100, currentDimensions.depth / 100]}
+          onClick={handleClick}
         >
+          <meshBasicMaterial visible={false} />
+        </Box>
+      )}
+
+      {/* Etiqueta de informações (Html) */}
+      {isSelected && (
+        <Html center position={[0, currentDimensions.height / 200 + 0.15, 0]}>
           <div style={{
-            background: isSelected ? '#f59e0b' : '#3b82f6',
+            background: '#f97316',
             color: 'white',
-            padding: '4px 8px',
-            borderRadius: '4px',
+            padding: '4px 10px',
+            borderRadius: '6px',
             fontSize: '12px',
-            fontWeight: 'bold',
-            opacity: 0.95,
-            transition: 'all 0.2s ease-in-out',
-            pointerEvents: 'none',
+            fontWeight: 600,
             whiteSpace: 'nowrap',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            transform: hovered ? 'scale(1.05)' : 'scale(1)'
+            pointerEvents: 'none',
           }}>
-            {isSelected ? '🎯 Selecionado' : 'Clique para selecionar'} ({currentDimensions.width}×{currentDimensions.height}×{currentDimensions.depth}mm)
+            Espaço Ativo: {space.name}
           </div>
         </Html>
       )}

@@ -1,6 +1,26 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 
+const PanelContainer = styled.div`
+  position: fixed;
+  bottom: var(--space-4);
+  left: var(--space-4); // Posição padrão
+
+  @media (max-width: 768px) {
+    left: auto; // Remove o posicionamento da esquerda
+    right: var(--space-3); // Posiciona na direita
+    bottom: var(--space-3);
+  }
+
+  @media (max-width: 480px) {
+    right: var(--space-1);
+    bottom: var(--space-1);
+    width: 96vw;
+    max-width: 400px;
+    padding: var(--space-2);
+  }
+`;
+
 const InstructionsContainer = styled.div<{ $isOpen: boolean }>`
   position: fixed;
   top: var(--space-6);
@@ -234,24 +254,26 @@ export const InstructionsPanel = () => {
         💡 Como Usar
       </ToggleButton>
       
-      <InstructionsContainer $isOpen={isOpen}>
-        <InstructionsHeader>
-          <InstructionsTitle>Como Usar o Sistema</InstructionsTitle>
-          <CloseButton onClick={() => setIsOpen(false)}>×</CloseButton>
-        </InstructionsHeader>
-        
-        <InstructionsContent>
-          {steps.map((step, index) => (
-            <Step key={index}>
-              <StepNumber $color={step.color}>{index + 1}</StepNumber>
-              <StepContent>
-                <StepTitle>{step.title}</StepTitle>
-                <StepDescription>{step.description}</StepDescription>
-              </StepContent>
-            </Step>
-          ))}
-        </InstructionsContent>
-      </InstructionsContainer>
+      <PanelContainer>
+        <InstructionsContainer $isOpen={isOpen}>
+          <InstructionsHeader>
+            <InstructionsTitle>Como Usar o Sistema</InstructionsTitle>
+            <CloseButton onClick={() => setIsOpen(false)}>×</CloseButton>
+          </InstructionsHeader>
+          
+          <InstructionsContent>
+            {steps.map((step, index) => (
+              <Step key={index}>
+                <StepNumber $color={step.color}>{index + 1}</StepNumber>
+                <StepContent>
+                  <StepTitle>{step.title}</StepTitle>
+                  <StepDescription>{step.description}</StepDescription>
+                </StepContent>
+              </Step>
+            ))}
+          </InstructionsContent>
+        </InstructionsContainer>
+      </PanelContainer>
     </>
   );
 };

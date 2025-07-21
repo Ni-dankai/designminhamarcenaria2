@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Scene3D } from './components/Scene3D';
 import { Toolbar } from './components/Toolbar';
 import { InstructionsPanel } from './components/InstructionsPanelNew';
-import { FloatingActionButtons } from './components/FloatingActionButtons';
 import { SpaceSelector } from './components/SpaceSelector';
 import { useSimplifiedFurnitureDesign } from './hooks/useSimplifiedFurnitureDesign';
+import { SelectionInfo } from './components/SelectionInfo';
+import { FurniturePiece } from './types/furniture';
+import { ModeIndicator } from './components/ModeIndicator';
 
 const App = () => {
   const {
@@ -22,15 +24,34 @@ const App = () => {
     activeSpaces,
     updateDimensions,
     // Novas propriedades de textura:
-    currentTextureUrl,
-    setCurrentTextureUrl,
+    currentTexture,
+    setCurrentTexture,
     availableTextures,
   } = useSimplifiedFurnitureDesign();
 
-  // Removido: selectedPieceId e setSelectedPieceId não são mais usados
-
   // NOVO: State para controlar a peça destacada
   const [hoveredPieceId, setHoveredPieceId] = useState<string | null>(null);
+  const [selectedPiece, setSelectedPiece] = useState<FurniturePiece | null>(null);
+
+  // NOVO: State para controlar o modo de seleção (peças ou espaços)
+  const [selectionMode, setSelectionMode] = useState<'piece' | 'space'>('piece');
+
+  // NOVO: Hook para escutar o atalho do teclado (Ctrl+S)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Verifica se Ctrl + S foi pressionado
+      if (event.ctrlKey && event.key.toLowerCase() === 's') {
+        event.preventDefault(); // Impede a ação padrão do navegador (Salvar página)
+        setSelectionMode(prevMode => (prevMode === 'piece' ? 'space' : 'piece'));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    // Limpa o listener quando o componente é desmontado
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []); // O array vazio garante que o listener seja adicionado apenas uma vez
 
   const handleSave = () => {
     // TODO: Implement save functionality
@@ -94,34 +115,35 @@ const App = () => {
         {theme === 'dark' ? '🌙 Noite' : '☀️ Claro'}
       </button>
 
+      {/* NOVO: Componente para dar feedback visual do modo atual */}
+      <ModeIndicator mode={selectionMode} />
+
       <Scene3D
         space={space}
         allPieces={allPieces}
         selectedSpaceId={selectedSpaceId}
         onSelectSpace={selectSpace}
-        // Nova prop de textura:
-        textureUrl={currentTextureUrl}
-        // NOVO: Passa o ID da peça destacada para a cena
+        textureUrl={currentTexture.url}
         hoveredPieceId={hoveredPieceId}
+        selectedPieceId={selectedPiece?.id || null}
+        onPieceClick={(piece) => {
+          setSelectedPiece(prev => (prev?.id === piece.id ? null : piece));
+        }}
+        selectionMode={selectionMode}
       />
 
       <Toolbar
-        insertionContext={insertionContext}
-        onModeChange={setInsertionMode}
         onAddPiece={addPiece}
         onRemovePiece={removePiece}
         onClearAll={clearAllPieces}
         pieces={allPieces}
-        currentDimensions={space.currentDimensions}
         originalDimensions={space.originalDimensions}
         onUpdateDimensions={updateDimensions}
         defaultThickness={defaultThickness}
         onThicknessChange={setDefaultThickness}
-        // Novas props de textura:
         availableTextures={availableTextures}
-        currentTextureUrl={currentTextureUrl}
-        onTextureChange={setCurrentTextureUrl}
-        // NOVO: Passa a função para atualizar o estado de peça destacada
+        currentTexture={currentTexture}
+        onTextureChange={setCurrentTexture}
         onHoverPiece={setHoveredPieceId}
       />
 
@@ -129,15 +151,23 @@ const App = () => {
         activeSpaces={activeSpaces}
         selectedSpaceId={selectedSpaceId}
         onSelectSpace={selectSpace}
+        mainSpaceId={space.id}
         mainSpaceName={space.name}
       />
 
       <InstructionsPanel />
 
-      <FloatingActionButtons
+      {/* =================================================================== */}
+      {/* CORREÇÃO: Remova ou comente a linha abaixo para excluir os botões   */}
+      {/* =================================================================== */}
+      {/* <FloatingActionButtons
         onReset={clearAllPieces}
         onSave={handleSave}
         onFullscreen={handleFullscreen}
+      /> */}
+      <SelectionInfo 
+        piece={selectedPiece}
+        onClose={() => setSelectedPiece(null)}
       />
     </div>
   );

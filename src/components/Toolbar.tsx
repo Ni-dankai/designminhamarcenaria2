@@ -3,7 +3,9 @@ import styled from 'styled-components';
 import { PieceType, FurniturePiece } from '../types/furniture';
 import { InsertionMode, InsertionContext } from '../types/insertion';
 
-// Componentes Estilizados (Styled Components)
+// Seus Componentes Estilizados (Styled Components)
+// ToolbarContainer, ToolbarSection, ToolButton, etc.
+
 const ToolbarContainer = styled.div`
   position: fixed;
   top: var(--space-4);
@@ -12,30 +14,38 @@ const ToolbarContainer = styled.div`
   background: var(--color-toolbar-surface, #ffffffcc);
   backdrop-filter: blur(20px);
   border-radius: var(--radius-xl, 12px);
-  box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0,0,0,0.1));
+  box-shadow: var(--shadow-xl);
   border: 1px solid var(--color-border, #e5e7eb);
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2);
+  padding: var(--space-3);
+  flex-wrap: wrap; /* Permite que os itens quebrem a linha */
+  justify-content: center;
+
+  /* =================================================================== */
+  /* CORREÇÃO: Delimitando a largura da Toolbar                          */
+  /* =================================================================== */
+  width: auto; /* A largura se ajusta ao conteúdo */
+  max-width: 1600px; /* Largura máxima para telas grandes */
+
+  @media (max-width: 1600px) {
+    max-width: 95vw; /* Em telas menores, ocupa 95% da largura */
+  }
 `;
 
 const ToolbarSection = styled.div`
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  position: relative;
-  
-  &:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: -2px;
-    top: 25%;
-    bottom: 25%;
-    width: 1px;
-    background-color: var(--color-border);
+  padding: 0 var(--space-3);
+
+  &:not(:last-child) {
+    border-right: 1px solid var(--color-border);
+  }
+
+  @media (max-width: 1600px) {
+    border-right: none !important;
   }
 `;
 
@@ -43,13 +53,83 @@ const SectionLabel = styled.span`
   font-size: var(--font-size-xs, 12px);
   font-weight: 600;
   color: var(--color-text-muted, #6b7280);
-  text-transform: uppercase;
+  margin-right: var(--space-2);
 `;
 
-// CORREÇÃO: Props $isActive e $imageUrl agora são "transient"
+const ToolButton = styled.button`
+  /* =================================================================== */
+  /* CORREÇÃO: Aumentado o padding para dar mais respiro aos botões      */
+  /* =================================================================== */
+  padding: var(--space-2) var(--space-4); /* Antes: var(--space-2) var(--space-3) */
+  
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 6px);
+  font-size: var(--font-size-sm, 14px);
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all 0.2s ease;
+
+  /* =================================================================== */
+  /* CORREÇÃO: Adicionado espaçamento vertical e horizontal (margem)     */
+  /* =================================================================== */
+  margin: var(--space-1) !important; /* Adiciona uma pequena margem em todos os lados */
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+`;
+
+const DimensionGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--color-background-alt, #f9fafb);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md, 6px);
+  border: 1px solid var(--color-border-light, #f3f4f6);
+`;
+
+const DimensionInput = styled.input`
+  width: 60px; /* Aumentado um pouco para melhor visualização */
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  background: var(--color-surface);
+  color: var(--color-text); /* Garante que a cor principal seja usada */
+  
+  /* =================================================================== */
+  /* CORREÇÃO: Aumenta o peso da fonte para dar mais destaque            */
+  /* =================================================================== */
+  font-weight: 600;
+
+  /* Remove as setas de aumentar/diminuir (steppers) do input */
+  -moz-appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light, #dbeafe);
+  }
+`;
+
 const TextureSwatch = styled.button<{ $imageUrl: string; $isActive: boolean }>`
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 2px solid ${({ $isActive }) => ($isActive ? 'var(--color-primary)' : 'var(--color-border)')};
   background-image: url(${({ $imageUrl }) => $imageUrl});
@@ -63,161 +143,17 @@ const TextureSwatch = styled.button<{ $imageUrl: string; $isActive: boolean }>`
   }
 `;
 
-const ToolButton = styled.button<{ $color?: string; $variant?: 'primary' | 'secondary' | 'danger'; $isActive?: boolean }>`
-  padding: var(--space-2) var(--space-4);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  min-width: auto;
-  flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  /* Base styles */
-  ${({ $variant, $color, $isActive }) => {
-    if ($variant === 'danger') {
-      return `
-        background: linear-gradient(135deg, var(--color-error), #b91c1c);
-        color: white;
-        box-shadow: var(--shadow-sm);
-        
-        &:hover {
-          background: linear-gradient(135deg, #b91c1c, #991b1b);
-          transform: translateY(-1px);
-          box-shadow: var(--shadow-md);
-        }
-      `;
-    }
-    if ($variant === 'secondary') {
-      return `
-        background: var(--color-background);
-        color: var(--color-text);
-        border: 1px solid var(--color-border);
-        box-shadow: var(--shadow-sm);
-        
-        &:hover {
-          background: var(--color-background-alt);
-          border-color: var(--color-primary);
-          color: var(--color-primary);
-          transform: translateY(-1px);
-          box-shadow: var(--shadow-md);
-        }
-      `;
-    }
-    return `
-      background: ${$isActive 
-        ? 'linear-gradient(135deg, var(--color-primary), var(--color-primary-hover))'
-        : `linear-gradient(135deg, ${$color || 'var(--color-primary)'}, ${$color ? $color + 'dd' : 'var(--color-primary-hover)'})`
-      };
-      color: white;
-      box-shadow: var(--shadow-sm);
-      
-      &:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        filter: brightness(1.1);
-      }
-    `;
-  }}
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
-    box-shadow: var(--shadow-sm) !important;
-    filter: none !important;
-  }
-  
-  &:focus-visible {
-    outline: 2px solid var(--color-primary-light);
-    outline-offset: 2px;
-  }
-`;
-
-const ModeToggle = styled.button<{ $isActive: boolean }>`
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid ${({ $isActive }) => $isActive ? 'var(--color-primary)' : 'var(--color-border)'};
-  border-radius: var(--radius-md);
-  background: ${({ $isActive }) => 
-    $isActive 
-      ? 'linear-gradient(135deg, var(--color-primary), var(--color-primary-hover))' 
-      : 'var(--color-surface)'
-  };
-  color: ${({ $isActive }) => $isActive ? 'white' : 'var(--color-text-secondary)'};
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  position: relative;
-  overflow: hidden;
-  box-shadow: ${({ $isActive }) => $isActive ? 'var(--shadow-sm)' : 'var(--shadow-sm)'};
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 80px;
-  
-  &:hover {
-    background: ${({ $isActive }) => 
-      $isActive 
-        ? 'linear-gradient(135deg, var(--color-primary-hover), var(--color-primary))' 
-        : 'var(--color-background-alt)'
-    };
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--color-primary);
-  }
-  
-  &:focus-visible {
-    outline: 2px solid var(--color-primary-light);
-    outline-offset: 2px;
-  }
-`;
-
-const DimensionGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-`;
-
-const DimensionInput = styled.input`
-  width: 60px;
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  text-align: center;
-  
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary-light);
-  }
-`;
-
-// Cole aqui todos os seus "styled-components" para o Toolbar
-// (ToolbarContainer, ToolbarSection, ToolButton, etc.)
-// ...
-
-// Certifique-se de que o Dropdown e outros componentes estilizados estejam definidos.
-const Dropdown = styled.div<{ $isOpen: boolean; }>`
+const Dropdown = styled.div<{ $isOpen: boolean }>`
   position: absolute;
-  top: calc(100% + 12px);
+  top: calc(100% + 8px);
   right: 0;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   z-index: 1001;
   display: ${({ $isOpen }) => $isOpen ? 'block' : 'none'};
-  min-width: 320px;
-  max-height: 400px;
+  min-width: 260px;
+  max-height: 320px;
   overflow: hidden;
   border: 1px solid var(--color-border);
   animation: fadeIn 0.2s ease-out;
@@ -236,7 +172,7 @@ const DropdownHeader = styled.div`
 `;
 
 const PiecesList = styled.div`
-  max-height: 280px;
+  max-height: 220px;
   overflow-y: auto;
   padding: var(--space-2);
 `;
@@ -249,7 +185,6 @@ const PieceItem = styled.div`
   margin-bottom: var(--space-1);
   border-radius: var(--radius-md);
   transition: background 0.2s ease;
-  
   &:hover {
     background: var(--color-background-alt);
   }
@@ -274,262 +209,176 @@ const RemoveButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-
   &:hover {
     color: var(--color-error);
     background: var(--color-error)15;
   }
 `;
 
+// ... Defina aqui os outros styled-components que você usa (Dropdown, PiecesList, etc)
 
-// Interface e Componente Principal
 interface ToolbarProps {
-  insertionContext: InsertionContext;
-  onModeChange: (mode: InsertionMode) => void;
   onAddPiece: (pieceType: PieceType) => void;
-  onRemovePiece: (pieceId: string) => void;
   onClearAll: () => void;
   pieces: FurniturePiece[];
-  originalDimensions: { width: number; height: number; depth: number }; // Usaremos esta
+  onRemovePiece: (pieceId: string) => void;
+  originalDimensions: { width: number; height: number; depth: number };
   onUpdateDimensions: (dimensions: { width: number; height: number; depth: number }) => void;
   defaultThickness: number;
   onThicknessChange: (thickness: number) => void;
   availableTextures: { name: string; url: string; }[];
-  currentTextureUrl: string;
-  onTextureChange: (url: string) => void;
-  onHoverPiece: (id: string | null) => void; // Nova prop para a função
-  [key: string]: any; // Permite outras props
+  currentTexture: { url: string; };
+  onTextureChange: (texture: any) => void;
+  onHoverPiece?: (id: string | null) => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({ 
-  insertionContext, 
-  onModeChange, 
   onAddPiece,
-  onRemovePiece,
   onClearAll,
   pieces,
-  originalDimensions, // Usando a prop de dimensões originais
+  onRemovePiece,
+  originalDimensions,
   onUpdateDimensions,
   defaultThickness,
   onThicknessChange,
   availableTextures,
-  currentTextureUrl,
+  currentTexture,
   onTextureChange,
   onHoverPiece,
-  // ... outras props
 }) => {
-  // =====================================================================================
-  // CORREÇÃO: Lógica para controlar a visibilidade do dropdown
-  // =====================================================================================
+  const [tempDimensions, setTempDimensions] = useState(originalDimensions);
   const [showPiecesList, setShowPiecesList] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Hook para fechar o dropdown ao clicar fora dele
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowPiecesList(false);
-      }
-    };
-    // Adiciona o listener quando o dropdown está aberto
-    if (showPiecesList) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    // Remove o listener ao limpar o efeito
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showPiecesList]);
-
-  // =====================================================================================
-  // CORREÇÃO: O state dos inputs agora é baseado em `originalDimensions`
-  // =====================================================================================
-  const [tempDimensions, setTempDimensions] = useState(originalDimensions);
-
-  // O state só é atualizado se a prop `originalDimensions` mudar externamente
   useEffect(() => {
     setTempDimensions(originalDimensions);
   }, [originalDimensions]);
 
-  const handleApplyDimensions = () => {
-    onUpdateDimensions(tempDimensions);
-  };
-  
-  const handleResetDimensions = () => {
-    // Apenas reseta os valores nos campos de input para as dimensões totais atuais
-    setTempDimensions(originalDimensions);
-  };
-
-  // A lógica de "mudanças" agora compara com as dimensões totais
   const hasChanges = tempDimensions.width !== originalDimensions.width || 
                      tempDimensions.height !== originalDimensions.height || 
                      tempDimensions.depth !== originalDimensions.depth;
 
-  const structuralPieces = [
-    { type: PieceType.LATERAL_LEFT, name: 'L.Esq', color: '#8b5cf6', position: 1 },
-    { type: PieceType.LATERAL_RIGHT, name: 'L.Dir', color: '#8b5cf6', position: 2 },
-    { type: PieceType.LATERAL_FRONT, name: 'Front', color: '#f59e0b', position: 3 },
-    { type: PieceType.LATERAL_BACK, name: 'Tras', color: '#f59e0b', position: 4 },
-    { type: PieceType.BOTTOM, name: 'Fundo', color: '#ef4444', position: 5 },
-    { type: PieceType.TOP, name: 'Tampo', color: '#ef4444', position: 6 },
-  ];
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onUpdateDimensions(tempDimensions);
+    }
+  };
 
-  const internalPieces = [
-    { type: PieceType.SHELF, name: 'Pratel.', color: '#10b981', position: 1 },
-    { type: PieceType.DIVIDER_VERTICAL, name: 'Div.V', color: '#3b82f6', position: 2 },
-  ];
-
-  const hasInternalSpace = originalDimensions.width > 0 && 
-                          originalDimensions.height > 0 && 
-                          originalDimensions.depth > 0;
+  const handleApplyDimensions = () => {
+    onUpdateDimensions(tempDimensions);
+  };
 
   return (
     <ToolbarContainer>
-        {/* Seção de Modo */}
-        <ToolbarSection>
-            <SectionLabel>Modo</SectionLabel>
-            <ModeToggle
-              $isActive={insertionContext.mode === InsertionMode.STRUCTURAL}
-              onClick={() => onModeChange(InsertionMode.STRUCTURAL)}
-            >
-              Estrutural
-            </ModeToggle>
-            <ModeToggle
-              $isActive={insertionContext.mode === InsertionMode.INTERNAL}
-              onClick={() => onModeChange(InsertionMode.INTERNAL)}
-            >
-              Interno
-            </ModeToggle>
-        </ToolbarSection>
+      {/* ======================================================================= */}
+      {/* SEÇÕES RESTAURADAS */}
+      {/* ======================================================================= */}
+      <ToolbarSection>
+        <SectionLabel>Espessura</SectionLabel>
+        <DimensionGroup>
+          <DimensionInput
+            type="number"
+            value={defaultThickness}
+            onChange={(e) => onThicknessChange(Number(e.target.value))}
+          />
+          <span style={{color: 'var(--color-text-muted)', paddingRight: '4px'}}>mm</span>
+        </DimensionGroup>
+      </ToolbarSection>
+      
+      <ToolbarSection>
+        <SectionLabel>Dimensões</SectionLabel>
+        <DimensionGroup>
+          <SectionLabel style={{marginLeft: '4px'}}>L</SectionLabel>
+          <DimensionInput 
+            type="number" 
+            value={tempDimensions.width} 
+            onChange={(e) => setTempDimensions(p => ({...p, width: Number(e.target.value)}))} 
+            onKeyDown={handleKeyDown}
+          />
+          <SectionLabel>A</SectionLabel>
+          <DimensionInput 
+            type="number" 
+            value={tempDimensions.height} 
+            onChange={(e) => setTempDimensions(p => ({...p, height: Number(e.target.value)}))} 
+            onKeyDown={handleKeyDown}
+          />
+          <SectionLabel>P</SectionLabel>
+          <DimensionInput 
+            type="number" 
+            value={tempDimensions.depth} 
+            onChange={(e) => setTempDimensions(p => ({...p, depth: Number(e.target.value)}))} 
+            onKeyDown={handleKeyDown}
+          />
+          <span style={{color: 'var(--color-text-muted)', paddingRight: '4px'}}>mm</span>
+        </DimensionGroup>
+        <ToolButton onClick={handleApplyDimensions} title="Aplicar dimensões">✓</ToolButton>
+        <ToolButton onClick={() => setTempDimensions(originalDimensions)} title="Resetar dimensões">↺</ToolButton>
+      </ToolbarSection>
 
-        {/* Seção de Espessura */}
-        <ToolbarSection>
-            <SectionLabel>Espessura</SectionLabel>
-            <input
-              type="number"
-              value={defaultThickness}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onThicknessChange(Number(e.target.value))}
-              min="1"
-              max="200"
-              title="Espessura das peças em milímetros"
+      <ToolbarSection>
+        <SectionLabel>Acabamento</SectionLabel>
+        {availableTextures && availableTextures.map(texture => (
+            <TextureSwatch
+                key={texture.url}
+                $imageUrl={texture.url}
+                $isActive={currentTexture?.url === texture.url}
+                onClick={() => onTextureChange(texture)}
+                title={texture.name}
             />
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text)' }}>mm</span>
-        </ToolbarSection>
+        ))}
+      </ToolbarSection>
 
-        {/* Seção de Dimensões */}
-        <ToolbarSection>
-            <SectionLabel>Dimensões</SectionLabel>
-            <DimensionGroup>
-                <SectionLabel style={{marginLeft: '4px'}}>L</SectionLabel>
-                <DimensionInput type="number" value={tempDimensions.width} onChange={(e) => setTempDimensions(p => ({...p, width: Number(e.target.value)}))} />
-                <SectionLabel>A</SectionLabel>
-                <DimensionInput type="number" value={tempDimensions.height} onChange={(e) => setTempDimensions(p => ({...p, height: Number(e.target.value)}))} />
-                <SectionLabel>P</SectionLabel>
-                <DimensionInput type="number" value={tempDimensions.depth} onChange={(e) => setTempDimensions(p => ({...p, depth: Number(e.target.value)}))} />
-                <span style={{color: 'var(--color-text-muted)', paddingRight: '4px'}}>mm</span>
-            </DimensionGroup>
-            <ToolButton $variant="secondary" onClick={handleApplyDimensions} disabled={!hasChanges} title="Aplicar dimensões">✓</ToolButton>
-            <ToolButton $variant="secondary" onClick={handleResetDimensions} title="Resetar dimensões">↺</ToolButton>
-        </ToolbarSection>
+      {/* Seções de Peças */}
+      <ToolbarSection>
+        <SectionLabel>Estrutura</SectionLabel>
+        <ToolButton onClick={() => onAddPiece(PieceType.LATERAL_LEFT)} title="Lateral Esquerda">L. Esq</ToolButton>
+        <ToolButton onClick={() => onAddPiece(PieceType.LATERAL_RIGHT)} title="Lateral Direita">L. Dir</ToolButton>
+        <ToolButton onClick={() => onAddPiece(PieceType.BOTTOM)} title="Base">Base</ToolButton>
+        <ToolButton onClick={() => onAddPiece(PieceType.TOP)} title="Tampo">Tampo</ToolButton>
+        <ToolButton onClick={() => onAddPiece(PieceType.LATERAL_BACK)} title="Costas">Costas</ToolButton>
+        {/* =================================================================== */}
+        {/* BOTÃO ADICIONADO: Peça Frontal                                      */}
+        {/* =================================================================== */}
+        <ToolButton onClick={() => onAddPiece(PieceType.LATERAL_FRONT)} title="Peça Frontal">Frontal</ToolButton>
+      </ToolbarSection>
 
-        {/* Seção de Acabamento (Textura) */}
-        <ToolbarSection>
-            <SectionLabel>Acabamento</SectionLabel>
-            {availableTextures.map(texture => (
-                <TextureSwatch
-                    key={texture.url}
-                    $imageUrl={texture.url}
-                    $isActive={currentTextureUrl === texture.url}
-                    onClick={() => onTextureChange(texture.url)}
-                    title={texture.name}
-                />
-            ))}
-        </ToolbarSection>
-
-        {/* Seção de Adição de Peças */}
-        <ToolbarSection>
-            <SectionLabel>
-              {insertionContext.mode === InsertionMode.STRUCTURAL ? 'Estrutural' : 'Interno'}
-            </SectionLabel>
-            
-            {insertionContext.mode === InsertionMode.STRUCTURAL ? (
-              <>
-                {structuralPieces.map((piece) => (
-                  <ToolButton
-                    key={piece.type}
-                    $color={piece.color}
-                    onClick={() => onAddPiece(piece.type)}
-                    style={{ fontSize: 'var(--font-size-xs)', padding: 'var(--space-1) var(--space-2', marginRight: 'var(--space-1)' }}
-                  >
-                    {piece.name}
-                  </ToolButton>
-                ))}
-              </>
-            ) : (
-              <>
-                {hasInternalSpace ? (
-                  <>
-                    {internalPieces.map((piece) => (
-                      <ToolButton
-                        key={piece.type}
-                        $color={piece.color}
-                        onClick={() => onAddPiece(piece.type)}
-                        style={{ fontSize: 'var(--font-size-xs)', padding: 'var(--space-1) var(--space-2', marginRight: 'var(--space-1)' }}
-                      >
-                        {piece.name}
-                      </ToolButton>
-                    ))}
-                  </>
-                ) : (
-                  <span style={{ fontSize: '11px', padding: '8px', color: 'var(--color-text-muted)' }}>
-                    ⚠️ Adicione peças estruturais primeiro
-                  </span>
-                )}
-              </>
-            )}
-        </ToolbarSection>
-
-        {/* Seção de Gerenciamento */}
-        <ToolbarSection>
-            <SectionLabel>Gerenciar</SectionLabel>
-            
-            {/* CORREÇÃO: `ref` adicionado para detectar cliques fora */}
-            <div style={{position: 'relative'}} ref={dropdownRef}>
-                <ToolButton 
-                    $variant="secondary"
-                    disabled={pieces.length === 0}
-                    // A função de toggle do estado
-                    onClick={() => setShowPiecesList(s => !s)}>
-                    Peças ({pieces.length}) {showPiecesList ? '▲' : '▼'}
-                </ToolButton>
-                {/* O estado `showPiecesList` controla a propriedade `$isOpen` */}
-                <Dropdown $isOpen={showPiecesList}>
-                    <DropdownHeader>Peças Adicionadas</DropdownHeader>
-                    <PiecesList>
-                        {pieces.length > 0 ? pieces.map((piece) => (
-                            <PieceItem 
-                              key={piece.id}
-                              // NOVO: Eventos de mouse para destacar a peça
-                              onMouseEnter={() => onHoverPiece(piece.id)}
-                              onMouseLeave={() => onHoverPiece(null)}
-                            >
-                                <PieceName>{piece.name}</PieceName>
-                                <RemoveButton onClick={() => onRemovePiece(piece.id)} title={`Remover ${piece.name}`}>×</RemoveButton>
-                            </PieceItem>
-                        )) : <div style={{padding: '16px', color: 'var(--color-text-muted)'}}>Nenhuma peça.</div>}
-                    </PiecesList>
-                </Dropdown>
-            </div>
-
-            <ToolButton
-              $variant="danger"
-              onClick={onClearAll}
-              disabled={pieces.length === 0}
-            >
-              Limpar
-            </ToolButton>
-        </ToolbarSection>
-
+      <ToolbarSection>
+        <SectionLabel>Divisões</SectionLabel>
+        <ToolButton onClick={() => onAddPiece(PieceType.SHELF)} title="Prateleira">Prateleira</ToolButton>
+        <ToolButton onClick={() => onAddPiece(PieceType.DIVIDER_VERTICAL)} title="Divisória Vertical">Divisória V.</ToolButton>
+      </ToolbarSection>
+      
+      {/* Seção de Gerenciamento */}
+      <ToolbarSection>
+        <SectionLabel>Gerenciar</SectionLabel>
+        {/* Container do Dropdown */}
+        <div style={{position: 'relative'}} ref={dropdownRef}>
+          <ToolButton 
+            disabled={!pieces || pieces.length === 0}
+            onClick={() => setShowPiecesList(s => !s)}
+          >
+            Peças ({pieces ? pieces.length : 0}) {showPiecesList ? '▲' : '▼'}
+          </ToolButton>
+          <Dropdown $isOpen={showPiecesList}>
+            <DropdownHeader>Peças Adicionadas</DropdownHeader>
+            <PiecesList>
+              {pieces && pieces.length > 0 ? pieces.map((piece) => (
+                <PieceItem 
+                  key={piece.id}
+                  onMouseEnter={() => onHoverPiece && onHoverPiece(piece.id)}
+                  onMouseLeave={() => onHoverPiece && onHoverPiece(null)}
+                >
+                  <PieceName>{piece.name}</PieceName>
+                  <RemoveButton onClick={() => onRemovePiece(piece.id)} title={`Remover ${piece.name}`}>×</RemoveButton>
+                </PieceItem>
+              )) : <div style={{padding: '16px', color: 'var(--color-text-muted)'}}>Nenhuma peça.</div>}
+            </PiecesList>
+          </Dropdown>
+        </div>
+        <ToolButton onClick={onClearAll} disabled={!pieces || pieces.length === 0}>
+          Limpar
+        </ToolButton>
+      </ToolbarSection>
     </ToolbarContainer>
   );
 };

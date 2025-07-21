@@ -4,9 +4,12 @@ import { FurnitureSpace, Dimensions, PieceType, FurniturePiece } from '../types/
 import { InsertionMode, InsertionContext } from '../types/insertion';
 import { SpaceCuttingSystem } from '../utils/spaceCutting';
 
+// =====================================================================================
+// CORREÇÃO: "Carvalho" movido para a primeira posição da lista
+// =====================================================================================
 export const availableTextures = [
-    { name: 'Branco TX', url: '/textures/mdf-branco.jpg' },
     { name: 'Carvalho', url: '/textures/mdf-carvalho.jpg' },
+    { name: 'Branco TX', url: '/textures/mdf-branco.jpg' },
     { name: 'Nogueira', url: '/textures/mdf-nogueira.jpg' },
     { name: 'Cinza Sagrado', url: '/textures/mdf-cinza.jpg' },
 ];
@@ -34,7 +37,7 @@ export const useSimplifiedFurnitureDesign = () => {
     const [insertionContext, setInsertionContext] = useState<InsertionContext>({ mode: InsertionMode.STRUCTURAL });
 
     // NOVO: State para controlar a textura atual
-    const [currentTextureUrl, setCurrentTextureUrl] = useState(availableTextures[0].url);
+    const [currentTexture, setCurrentTexture] = useState(availableTextures[0]);
 
     const memoizedState = useMemo(() => {
         // Lista final de todas as peças com posições e dimensões corretas para renderizar
@@ -186,8 +189,8 @@ export const useSimplifiedFurnitureDesign = () => {
         insertionContext, setInsertionMode,
         defaultThickness, setDefaultThickness,
         // NOVO: propriedades para textura
-        currentTextureUrl,
-        setCurrentTextureUrl,
+        currentTexture,
+        setCurrentTexture,
         availableTextures,
     };
 };
