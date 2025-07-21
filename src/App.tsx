@@ -12,7 +12,6 @@ const App = () => {
   const {
     space,
     allPieces,
-    insertionContext,
     addPiece,
     removePiece,
     clearAllPieces,
