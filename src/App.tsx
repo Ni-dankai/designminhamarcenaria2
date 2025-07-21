@@ -100,8 +100,6 @@ const App = () => {
         allPieces={allPieces}
         selectedSpaceId={selectedSpaceId}
         onSelectSpace={selectSpace}
-        selectedPieceId={selectedPieceId}
-        onSelectPiece={setSelectedPieceId}
         // Nova prop de textura:
         textureUrl={currentTextureUrl}
         // NOVO: Passa o ID da peça destacada para a cena

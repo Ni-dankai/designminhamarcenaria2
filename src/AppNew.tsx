@@ -22,8 +22,6 @@ const App = () => {
       <Scene3D
         space={space}
         allPieces={allPieces}
-        selectedPieceId={selectedPieceId}
-        onSelectPiece={setSelectedPieceId}
         textureUrl={currentTextureUrl} // Corrigido: prop obrigatória
       />
 
